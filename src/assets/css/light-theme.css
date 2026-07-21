@@ -1,0 +1,141 @@
+:root {
+  --primary-color: #007bff;
+  --bg-color: #f8f9fa;
+  --text-color: #333;
+  --card-bg: #ffffff;
+  --border-color: #dee2e6;
+  --sidebar-bg: #343a40;
+  --sidebar-text: #ffffff;
+}
+
+.light {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+}
+
+.light .sidebar {
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.light .card {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+}
+
+.light .upload-area {
+  border: 2px dashed var(--border-color);
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.light .sidebar-item {
+  color: var(--sidebar-text) !important;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  display: block;
+  border-radius: 0.375rem;
+  margin: 0.125rem 0;
+}
+
+.light .sidebar-item.active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.light .sidebar-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
+
+.light .main-content {
+  padding: 2rem;
+}
+
+.light .section-container {
+  animation: fadeInUp 0.5s ease;
+}
+
+.light .stat-card {
+  transition: transform 0.2s ease;
+}
+
+.light .stat-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Loading overlay */
+.global-loading-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Quick action cards */
+.quick-action-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: 100%;
+}
+
+.quick-action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Status dots */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-dot.online {
+  background-color: #28a745;
+}
+
+.status-dot.offline {
+  background-color: #dc3545;
+}
+
+/* Upload area */
+.upload-area {
+  border: 2px dashed #dee2e6;
+  border-radius: 0.375rem;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: #007bff;
+  background-color: #e3f2fd;
+}
+
+.file-item {
+  background-color: #f8f9fa;
+  border-radius: 0.375rem;
+}
