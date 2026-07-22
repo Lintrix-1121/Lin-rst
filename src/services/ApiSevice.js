@@ -1,8 +1,7 @@
-// src/services/ApiService.js
 import axios from 'axios';
 
 const ApiService = axios.create({
-   baseURL: 'https://localhost:5000',
+   baseURL: import.meta.env.VITE_API_URL,
    timeout: 30000,
 });
 

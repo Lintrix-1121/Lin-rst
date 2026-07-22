@@ -1,6 +1,6 @@
 import ApiService from '../../services/ApiSevice'
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL;
 
 export const tuneAPI = {
   getAll: (params = {}) => ApiService.get(`${API_BASE}/tune/`, { params }),
