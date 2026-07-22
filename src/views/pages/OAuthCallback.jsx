@@ -20,7 +20,7 @@ const OAuthCallback = () => {
 
     // Success – fetch user data
     handleOAuthRedirect()
-      .then(() => navigate('/dashboard'))
+      .then(() => navigate('/'))
       .catch(() => navigate('/login'));
   }, [searchParams, handleOAuthRedirect, navigate]);
 

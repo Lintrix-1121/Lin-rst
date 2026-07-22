@@ -34,6 +34,14 @@ const Header = ({ theme, toggleTheme }) => {
           </div>
         </Navbar.Collapse>
       </Container>
+      <div className="user-info">
+        {user && (
+          <>
+            <span>{user.displayName}</span>
+            <button onClick={logout}>Logout</button>
+          </>
+        )}
+      </div>
     </Navbar>
   );
 };
