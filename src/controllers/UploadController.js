@@ -52,7 +52,7 @@ class UploadController {
           reject(new Error('Network error during upload'));
         });
 
-        xhr.open('POST', `http://82.112.255.75:7091${endpoint}`);
+        xhr.open('POST', `${import.meta.env.VITE_API_URL}${endpoint}`);
         xhr.send(formData);
       });
 
