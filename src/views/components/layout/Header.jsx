@@ -1,8 +1,11 @@
 import React from 'react';
 import { Navbar, Container, Nav, Button } from 'react-bootstrap';
+import { useAuth } from '../../hooks/useAuth';
 import ThemeToggle from './ThemeToggle';
 
 const Header = ({ theme, toggleTheme }) => {
+  const { user, logout } = useAuth();   // get user and logout from context
+
   return (
     <Navbar bg="success" variant="dark" expand="lg" className="main-header">
       <Container fluid>
@@ -26,22 +29,28 @@ const Header = ({ theme, toggleTheme }) => {
           </Nav>
           
           <div className="d-flex align-items-center">
+            {/* Show user name if authenticated */}
+            {user && (
+              <span className="text-light me-2">
+                <i className="bi bi-person-circle me-1"></i>
+                {user.displayName || user.userName}
+              </span>
+            )}
             <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
-            <Button variant="outline-light" size="sm" className="ms-2">
-              <i className="bi bi-box-arrow-right me-1"></i>
-              Logout
-            </Button>
+            {user && (
+              <Button
+                variant="outline-light"
+                size="sm"
+                className="ms-2"
+                onClick={logout}  
+              >
+                <i className="bi bi-box-arrow-right me-1"></i>
+                Logout
+              </Button>
+            )}
           </div>
         </Navbar.Collapse>
       </Container>
-      <div className="user-info">
-        {user && (
-          <>
-            <span>{user.displayName}</span>
-            <button onClick={logout}>Logout</button>
-          </>
-        )}
-      </div>
     </Navbar>
   );
 };
