@@ -5,9 +5,11 @@ import { useAuth } from '../hooks/useAuth';
 const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { handleOAuthRedirect, loading } = useAuth();
+  const { handleOAuthRedirect, user, loading } = useAuth();
   const [error, setError] = useState(null);
+  const [redirected, setRedirected] = useState(false);
 
+  // On mount, check the URL params and trigger the auth check
   useEffect(() => {
     const status = searchParams.get('status');
     const errorMsg = searchParams.get('error');
@@ -18,39 +20,31 @@ const OAuthCallback = () => {
       return;
     }
 
-    // Success – fetch user data
-    handleOAuthRedirect()
-      .then(() => {
-        console.log('User authenticated, redirecting to /');
-        navigate('/');
-      })
-      .catch((err) => {
-        console.error('OAuth redirect error:', err);
+    // Only call handleOAuthRedirect once
+    if (!redirected) {
+      console.log('OAuthCallback - calling handleOAuthRedirect...');
+      setRedirected(true);
+      handleOAuthRedirect().catch((err) => {
+        console.error('OAuthCallback - error:', err);
         navigate('/login');
       });
-  }, [searchParams, handleOAuthRedirect, navigate]);
+    }
+  }, [searchParams, handleOAuthRedirect, navigate, redirected]);
 
-  // useEffect(() => {
-  //   const status = searchParams.get('status');
-  //   const errorMsg = searchParams.get('error');
+  //React to user changes – navigate when user is set
+  useEffect(() => {
+    if (user) {
+      console.log('OAuthCallback - user detected, navigating to /');
+      navigate('/');
+    }
+  }, [user, navigate]);
 
-  //   if (status === 'error' || errorMsg) {
-  //     setError(errorMsg || 'Authentication failed');
-  //     setTimeout(() => navigate('/login'), 3000);
-  //     return;
-  //   }
-
-  //   // Success – fetch user data
-  //   handleOAuthRedirect()
-  //     .then(() => navigate('/'))
-  //     .catch(() => navigate('/login'));
-  // }, [searchParams, handleOAuthRedirect, navigate]);
-
-  // if (error) {
-  //   return <div>Authentication error: {error}. Redirecting...</div>;
-  // }
+  if (error) {
+    return <div>Authentication error: {error}. Redirecting...</div>;
+  }
 
   return <div>Completing sign‑in... Please wait.</div>;
 };
 
 export default OAuthCallback;
+
