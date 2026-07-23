@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Security-Policy" 
       content="default-src 'self'; 
-               script-src 'self'; 
-               style-src 'self'; 
-               connect-src 'self' https://api.crestune.logiphix.tech;">
+               script-src 'self' 'unsafe-inline'; 
+               style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; 
+               connect-src 'self' https://api.crestune.logiphix.tech; 
+               img-src 'self' data:;">
     <title>Music MVC Dashboard</title>
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
