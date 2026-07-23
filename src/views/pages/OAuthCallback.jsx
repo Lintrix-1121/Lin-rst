@@ -20,13 +20,35 @@ const OAuthCallback = () => {
 
     // Success – fetch user data
     handleOAuthRedirect()
-      .then(() => navigate('/'))
-      .catch(() => navigate('/login'));
+      .then(() => {
+        console.log('User authenticated, redirecting to /');
+        navigate('/');
+      })
+      .catch((err) => {
+        console.error('OAuth redirect error:', err);
+        navigate('/login');
+      });
   }, [searchParams, handleOAuthRedirect, navigate]);
 
-  if (error) {
-    return <div>Authentication error: {error}. Redirecting...</div>;
-  }
+  // useEffect(() => {
+  //   const status = searchParams.get('status');
+  //   const errorMsg = searchParams.get('error');
+
+  //   if (status === 'error' || errorMsg) {
+  //     setError(errorMsg || 'Authentication failed');
+  //     setTimeout(() => navigate('/login'), 3000);
+  //     return;
+  //   }
+
+  //   // Success – fetch user data
+  //   handleOAuthRedirect()
+  //     .then(() => navigate('/'))
+  //     .catch(() => navigate('/login'));
+  // }, [searchParams, handleOAuthRedirect, navigate]);
+
+  // if (error) {
+  //   return <div>Authentication error: {error}. Redirecting...</div>;
+  // }
 
   return <div>Completing sign‑in... Please wait.</div>;
 };
