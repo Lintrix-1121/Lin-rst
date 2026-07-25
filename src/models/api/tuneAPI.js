@@ -29,8 +29,8 @@ export const tuneAPI = {
   getRecentlyPlayed: (params = {}) => ApiService.get(`${API_BASE}/tune/recently-played`, { params }),
   
   //File operations
-  download: (id) => ApiService.get(`${API_BASE}/tune/download/${id}`, { responseType: 'blob' }),
-  streamBlob: (id) => ApiService.get(`${API_BASE}/tune/stream/${id}`, { responseType: 'blob' }),
+  download: (id) => ApiService.get(`${API_BASE}/dold/download/${id}`, { responseType: 'blob' }),
+  streamBlob: (id) => ApiService.get(`${API_BASE}/dold/stream/${id}`, { responseType: 'blob' }),
   
   //Batch operations
   batchUpdate: (updates) => ApiService.patch(`${API_BASE}/tune/batch`, updates)
