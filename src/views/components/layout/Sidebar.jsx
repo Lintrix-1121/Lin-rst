@@ -1,3 +1,4 @@
+import { label, path } from 'framer-motion/client';
 import React from 'react';
 import { Nav } from 'react-bootstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -12,6 +13,7 @@ const Sidebar = () => {
     { id: 'analytics', path: '/analytics', icon: 'bi-graph-up', label: 'Analytics', badge: null },
     { id: 'manager', path: '/manager', icon: 'bi-music-note-list', label: 'Tune Manager', badge: null },
     { id: 'tunes', path: '/tunes', icon: 'bi-music-note-list', label: 'FAQs', badge: null },
+    { id: 'profile', path: '/profile', icon: 'bi-person', label: 'Proile', badge: null }
   ];
 
   const handleNavigation = (path) => {
