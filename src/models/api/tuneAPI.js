@@ -1,6 +1,7 @@
 import ApiService from '../../services/ApiSevice'
 
 const API_BASE = import.meta.env.VITE_API_URL;
+const getToken = () => localStorage.getItem('token') || '';
 
 export const tuneAPI = {
   getAll: (params = {}) => ApiService.get(`${API_BASE}/tune/`, { params }),
@@ -28,10 +29,18 @@ export const tuneAPI = {
   getFavorites: (params = {}) => ApiService.get(`${API_BASE}/tune/favorites`, { params }),
   getRecentlyPlayed: (params = {}) => ApiService.get(`${API_BASE}/tune/recently-played`, { params }),
   
-  //File operations
-  download: (id) => ApiService.get(`${API_BASE}/tune/download/${id}`, { responseType: 'blob' }),
-  stream: (id) => ApiService.get(`${API_BASE}/tune/stream/${id}`),
-  
+  getStreamUrl: (id) => {
+    const token = getToken();
+    return `${API_BASE}/tune/stream/${id}${token ? `?token=${token}` : ''}`;
+  },
+  getDownloadUrl: (id) => {
+    const token = getToken();
+    return `${API_BASE}/tune/download/${id}${token ? `?token=${token}` : ''}`;
+  },
+
+  // --- Keep your existing blob methods if you still need them ---
+  streamBlob: (id) => ApiService.get(`${API_BASE}/tune/stream/${id}`, { responseType: 'blob' }),
+  downloadBlob: (id) => ApiService.get(`${API_BASE}/tune/download/${id}`, { responseType: 'blob' }),
   //Batch operations
   batchUpdate: (updates) => ApiService.patch(`${API_BASE}/tune/batch`, updates)
 };
