@@ -23,6 +23,7 @@ import { AuthProvider } from './views/hooks/useAuth';
 import Login from './views/pages/Login';
 import OAuthCallback from './views/pages/OAuthCallback';
 import ProtectedRoute from './views/pages/ProtectedRoute';
+import Profile from './views/pages/Profile';
 
 // Layout component – wraps all protected pages with Header, Sidebar, and main content
 const Layout = () => {
@@ -66,6 +67,7 @@ function App() {
                 <Route path="/analytics" element={<AnalyticsDashboard />} />
                 <Route path="/manager" element={<TuneManagerPage />} />
                 <Route path="/tunes" element={<TuneList />} />
+                <Route path='/profile' element={<Profile />} />
               </Route>
             </Route>
           </Routes>
