@@ -30,7 +30,7 @@ export const tuneAPI = {
   
   //File operations
   download: (id) => ApiService.get(`${API_BASE}/tune/download/${id}`, { responseType: 'blob' }),
-  stream: (id) => ApiService.get(`${API_BASE}/tune/stream/${id}`),
+  streamBlob: (id) => ApiService.get(`${API_BASE}/tune/stream/${id}`, { responseType: 'blob' }),
   
   //Batch operations
   batchUpdate: (updates) => ApiService.patch(`${API_BASE}/tune/batch`, updates)
