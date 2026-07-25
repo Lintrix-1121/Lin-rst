@@ -163,17 +163,41 @@ const TuneList = () => {
     );
   }
 
-  const handleDownloadTune = (tuneId) => {
-    const tune = tunes.find(t => t.id === tuneId);
-    if (!tune) return;
-    const downloadUrl = tuneAPI.getDownloadUrl(tuneId);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+
+  const handleDownloadTune = async (tuneId) => {
+    try {
+      const tune = tunes.find(t => t.id === tuneId);
+      if (!tune) return;
+
+      // Fetch the file as a blob (authenticated via Axios)
+      const response = await tuneAPI.downloadBlob(tuneId);
+      
+      // Create a download link
+      const blob = response.data; // Axios returns blob in data
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Download failed:', error)
+
+    }
+  }
+  // const handleDownloadTune = (tuneId) => {
+  //   const tune = tunes.find(t => t.id === tuneId);
+  //   if (!tune) return;
+  //   const downloadUrl = tuneAPI.getDownloadUrl(tuneId);
+  //   const link = document.createElement('a');
+  //   link.href = downloadUrl;
+  //   link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
 
 
   return (
