@@ -35,11 +35,11 @@ export const tuneAPI = {
 
   getStreamUrl: (id) => {
     const token = getToken();
-    return `${API_BASE}/tune/stream/${id}${token ? `?token=${token}` : ''}`;
+    return `${API_BASE}/dold/stream/${id}${token ? `?token=${token}` : ''}`;
   },
   getDownloadUrl: (id) => {
     const token = getToken();
-    return `${API_BASE}/tune/download/${id}${token ? `?token=${token}` : ''}`;
+    return `${API_BASE}/dold/download/${id}${token ? `?token=${token}` : ''}`;
   },
   
   //Batch operations
