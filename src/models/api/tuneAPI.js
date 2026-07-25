@@ -1,7 +1,7 @@
 import ApiService from '../../services/ApiSevice'
 
 const API_BASE = import.meta.env.VITE_API_URL;
-const getToken = () => localStorage.getItem('token') || '';
+const getToken = () => localStorage.getItem('authToken') || '';
 
 export const tuneAPI = {
   getAll: (params = {}) => ApiService.get(`${API_BASE}/tune/`, { params }),
