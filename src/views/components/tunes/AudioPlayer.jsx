@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Form, Spinner, Badge } from 'react-bootstrap';
-import { tuneAPI } from '../../../models/api/tuneAPI';
+import { tuneAPI } from '../../../models/api/tuneAPI'; 
 
 const AudioPlayer = ({ tune, onEnd, onError }) => {
   const audioRef = useRef(null);
@@ -10,36 +10,73 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
   const [volume, setVolume] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const streamUrl = tune ? tuneAPI.getStreamUrl(tune.id) : '';
+  const [objectUrl, setObjectUrl] = useState(null);
 
   useEffect(() => {
-    if (!tune) return;
+    if (!tune) {
+      // Cleanup when no tune is set
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        setObjectUrl(null);
+      }
+      return;
+    }
 
     setLoading(true);
     setError(null);
-    const audio = audioRef.current;
-    if (!audio) return;
+    setIsPlaying(false);
 
-    // Reset and load the new stream
-    audio.src = streamUrl;
-    audio.load();
-    audio.volume = volume;
+    // Fetch the audio as a blob
+    tuneAPI.streamBlob(tune.id)
+      .then(response => {
+        // Assuming ApiService returns the raw response with blob data
+        // If using axios, response.data is the Blob
+        const blob = response.data;
+        const url = URL.createObjectURL(blob);
+        setObjectUrl(url);
 
-    const handleCanPlay = () => {
-      setLoading(false);
-      audio.play().catch(err => {
-        setError('Unable to play.');
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        audio.src = url;
+        audio.load();
+        audio.volume = volume;
+
+        // Auto-play after load
+        audio.play()
+          .then(() => setIsPlaying(true))
+          .catch(err => {
+            setError('Playback failed.');
+            onError?.(err);
+          });
+        setLoading(false);
+      })
+      .catch(err => {
+        setLoading(false);
+        setError('Failed to load audio.');
         onError?.(err);
       });
-      setIsPlaying(true);
-    };
 
-    const handleError = (e) => {
-      setLoading(false);
-      setError('Failed to load audio.');
-      onError?.(e);
+    // Cleanup on unmount or tune change
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+        setObjectUrl(null);
+      }
     };
+  }, [tune, onError, volume]); // Re-fetch when tune changes
+
+  // Effect to handle volume changes without re-fetching
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
+  // Event listeners for playback
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleLoadedMetadata = () => setDuration(audio.duration);
@@ -48,22 +85,23 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
       setCurrentTime(0);
       onEnd?.();
     };
+    const handleError = (e) => {
+      setError('Playback error.');
+      onError?.(e);
+    };
 
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('error', handleError);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
 
     return () => {
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('error', handleError);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('ended', handleEnded);
-      audio.pause();
+      audio.removeEventListener('error', handleError);
     };
-  }, [tune, streamUrl, onEnd, onError, volume]);
+  }, [tune, onEnd, onError]); // Re-attach when tune changes
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -90,7 +128,6 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
   const handleVolumeChange = (e) => {
     const newVol = parseFloat(e.target.value);
     setVolume(newVol);
-    if (audioRef.current) audioRef.current.volume = newVol;
   };
 
   const formatTime = (seconds) => {
