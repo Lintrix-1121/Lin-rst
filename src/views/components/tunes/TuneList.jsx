@@ -115,16 +115,6 @@ const TuneList = () => {
     }
   };
 
-  // const handlePlayTune = async (tuneId) => {
-  //   try {
-  //     await tuneController.recordPlay(tuneId);
-  //     // Optional: Refresh the list to update play counts
-  //     await loadTunes();
-  //   } catch (err) {
-  //     console.error('Error recording play:', err);
-  //   }
-  // };
-
   const handlePlayTune = async (tuneId) => {
     try {
       //find tune object
