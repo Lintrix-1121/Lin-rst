@@ -115,15 +115,31 @@ const TuneList = () => {
     }
   };
 
+  // const handlePlayTune = async (tuneId) => {
+  //   try {
+  //     await tuneController.recordPlay(tuneId);
+  //     // Optional: Refresh the list to update play counts
+  //     await loadTunes();
+  //   } catch (err) {
+  //     console.error('Error recording play:', err);
+  //   }
+  // };
+
   const handlePlayTune = async (tuneId) => {
     try {
+      //find tune object
+      const tune = tunes.find(t => t.id === tuneId);
+      if (!tune) return;
+      setCurrentPlayingTune(tune);
+      //record play count
       await tuneController.recordPlay(tuneId);
-      // Optional: Refresh the list to update play counts
+      //refresh list to update play count
       await loadTunes();
     } catch (err) {
-      console.error('Error recording play:', err);
+      console.error('Error playing tune:', err);
     }
   };
+
 
   const handleEditorClose = () => {
     setShowEditor(false);
@@ -156,21 +172,6 @@ const TuneList = () => {
       </Container>
     );
   }
-
-  const handlePlayTune = async (tuneId) => {
-    try {
-      //find tune object
-      const tune = tunes.find(t => t.id === tuneId);
-      if (!tune) return;
-      setCurrentPlayingTune(tune);
-      //record play count
-      await tuneController.recordPlay(tuneId);
-      //refresh list to update play count
-      await loadTunes();
-    } catch (err) {
-      console.error('Error playing tune:', err);
-    }
-  };
 
   const handleDownloadTune = (tuneId) => {
     const tune = tunes.find(t => t.id === tuneId);
