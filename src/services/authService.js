@@ -1,4 +1,4 @@
-import ApiService from './ApiSevice';
+import ApiService from "./ApiSevice";
 
 
 const AuthService = {

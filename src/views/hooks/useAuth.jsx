@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       setLoading(true);
-      
+
       const response = await AuthService.getStatus();
       if (response.data.authenticated) {
         setUser(User.fromJSON(response.data.user));
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
 
   const handleOAuthRedirect = async () => {
     if (token) {
-      localStorage.setItem("token", token);
+      localStorage.setItem("authToken", token);
     }
     await checkAuth();
   };
@@ -42,7 +42,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    checkAuth();
+    const token  = localStorage.getItem("authToken");
+    if (token) {
+      checkAuth();
+    } else {
+      setLoading(false);
+    }
+  
   }, []);
 
   return (
