@@ -10,6 +10,8 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
+      setLoading(true);
+      
       const response = await AuthService.getStatus();
       if (response.data.authenticated) {
         setUser(User.fromJSON(response.data.user));
@@ -29,6 +31,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleOAuthRedirect = async () => {
+    if (token) {
+      localStorage.setItem("token", token);
+    }
     await checkAuth();
   };
 

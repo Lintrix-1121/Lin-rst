@@ -30,7 +30,7 @@ export const tuneAPI = {
   getRecentlyPlayed: (params = {}) => ApiService.get(`${API_BASE}/tune/recently-played`, { params }),
   
   //File operations
-  downloadBlob: (id) => ApiService.get(`${API_BASE}/dold/download/${id}`, { responseType: 'blob' }),
+  downloadBlob: (id) => ApiService.get(`${API_BASE}/dold/download/${id}`, { responseType: 'blob', _skipAuthRedirect: true }),
   streamBlob: (id) => ApiService.get(`${API_BASE}/dold/stream/${id}`, { responseType: 'blob' }),
 
   getStreamUrl: (id) => {

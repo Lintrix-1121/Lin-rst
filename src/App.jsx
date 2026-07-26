@@ -6,6 +6,7 @@ import { useTheme } from './views/hooks/useTheme';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/css/light-theme.css';
 import './assets/css/dark-theme.css';
+import { Toaster } from 'react-hot-toast';
 
 // Layout components
 import Header from './views/components/layout/Header';
@@ -51,29 +52,32 @@ function App() {
   const { theme } = useTheme();
 
   return (
-    <AuthProvider>
-      <Router>
-        <div className={`app ${theme}`}>
-          <Routes>
-            {/* Public routes – no layout */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/oauth-callback" element={<OAuthCallback />} />
+    <>
+      <Toaster position="top-right" reverseOrder={false} />
+      <AuthProvider>
+        <Router>
+          <div className={`app ${theme}`}>
+            <Routes>
+              {/* Public routes – no layout */}
+              <Route path="/login" element={<Login />} />
 
-            {/* Protected routes – require authentication and use the Layout */}
-            <Route element={<ProtectedRoute />}>
-              <Route element={<Layout />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/upload" element={<UploadPage />} />
-                <Route path="/analytics" element={<AnalyticsDashboard />} />
-                <Route path="/manager" element={<TuneManagerPage />} />
-                <Route path="/tunes" element={<TuneList />} />
-                <Route path='/profile' element={<Profile />} />
+
+              {/* Protected routes – require authentication and use the Layout */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/upload" element={<UploadPage />} />
+                  <Route path="/analytics" element={<AnalyticsDashboard />} />
+                  <Route path="/manager" element={<TuneManagerPage />} />
+                  <Route path="/tunes" element={<TuneList />} />
+                  <Route path='/profile' element={<Profile />} />
+                </Route>
               </Route>
-            </Route>
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+            </Routes>
+          </div>
+        </Router>
+      </AuthProvider>
+    </>
   );
 }
 

@@ -163,17 +163,19 @@ const TuneList = () => {
     );
   }
 
-
   const handleDownloadTune = async (tuneId) => {
-    try {
-      const tune = tunes.find(t => t.id === tuneId);
-      if (!tune) return;
+    const tune = tunes.find(t => t.id === tuneId);
+    if (!tune) {
+      toast.error('Tune not found');
+      return;
+    }
 
-      // Fetch the file as a blob (authenticated via Axios)
+    const toastId = toast.loading(`Preparing ${tune.title}...`);
+
+    try {
       const response = await tuneAPI.downloadBlob(tuneId);
-      
-      // Create a download link
-      const blob = response.data; // Axios returns blob in data
+      const blob = response.data;
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -182,24 +184,46 @@ const TuneList = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+
+      toast.success(`Downloaded: ${tune.title}`, { id: toastId });
     } catch (error) {
-      console.error('Download failed:', error)
-
+      console.error('Download failed:', error);
+      if (error.response?.status === 401) {
+        toast.error('Please login again to download.', { id: toastId });
+        // Optionally, manually redirect after a delay
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      } else {
+        toast.error('Download failed. Please try again.', { id: toastId });
+      }
     }
-  }
-  // const handleDownloadTune = (tuneId) => {
-  //   const tune = tunes.find(t => t.id === tuneId);
-  //   if (!tune) return;
-  //   const downloadUrl = tuneAPI.getDownloadUrl(tuneId);
-  //   const link = document.createElement('a');
-  //   link.href = downloadUrl;
-  //   link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
-  // };
+  };
 
+  // const handleDownloadTune = async (tuneId) => {
+  //   try {
+  //     const tune = tunes.find(t => t.id === tuneId);
+  //     if (!tune) return;
 
+  //     // Fetch the file as a blob (authenticated via Axios)
+  //     const response = await tuneAPI.downloadBlob(tuneId);
+      
+  //     // Create a download link
+  //     const blob = response.data; // Axios returns blob in data
+  //     const url = window.URL.createObjectURL(blob);
+  //     const link = document.createElement('a');
+  //     link.href = url;
+  //     link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //     window.URL.revokeObjectURL(url);
+  //   } catch (error) {
+  //     console.error('Download failed:', error)
+
+  //   }
+  // }
+  
   return (
     <>
       <Container className="py-4">
