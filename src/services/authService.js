@@ -1,5 +1,6 @@
 import ApiService from './ApiSevice';
 
+
 const AuthService = {
   //Get current authenticated user info
   getStatus() {

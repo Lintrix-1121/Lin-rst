@@ -60,6 +60,7 @@ function App() {
             <Routes>
               {/* Public routes – no layout */}
               <Route path="/login" element={<Login />} />
+              <Route path="/oauth-callback" element={<OAuthCallback />} />
 
 
               {/* Protected routes – require authentication and use the Layout */}
