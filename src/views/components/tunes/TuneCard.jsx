@@ -30,7 +30,7 @@ const TuneCard = ({ tune, onEdit, onDelete, onPlay, onDownload }) => {
     e.stopPropagation();
     try {
       // Use the download endpoint
-      const downloadUrl = `/api/tune/download/${tune.id}`;
+      const downloadUrl = `/api/dold/download/${tune.id}`;
       // Open in new tab or trigger download
       const link = document.createElement('a');
       link.href = downloadUrl;
