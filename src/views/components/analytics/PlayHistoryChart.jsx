@@ -24,19 +24,10 @@ ChartJS.register(
 );
 
 const PlayHistoryChart = ({ chartData, timeRange }) => {
-  // Default data if no chartData provided
-  const defaultData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Plays',
-        data: [1200, 1900, 3000, 5000, 2000, 3000],
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        fill: true,
-        tension: 0.4,
-      }
-    ]
+  // chartData is now provided by the parent from the backend
+  const data = chartData || {
+    labels: ['No Data'],
+    datasets: [{ label: 'Streams', data: [0], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }]
   };
 
   const data = chartData || defaultData;
@@ -110,3 +101,5 @@ const PlayHistoryChart = ({ chartData, timeRange }) => {
 };
 
 export default PlayHistoryChart;
+
+

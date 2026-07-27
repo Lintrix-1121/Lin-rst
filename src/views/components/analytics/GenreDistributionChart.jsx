@@ -9,18 +9,11 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const GenreDistributionChart = ({ dashboardData }) => {
-  // Generate genre data from dashboard data or use mock data
+const GenreDistributionChart = ({ genreBreakdown }) => {
   const generateGenreData = () => {
-    // This would come from your actual data
-    const genreData = {
-      'Rock': 25,
-      'Pop': 20,
-      'Jazz': 15,
-      'Electronic': 18,
-      'Classical': 12,
-      'Hip Hop': 10
-    };
+    const data = genreBreakdown || { 'No Data': 1 };
+    const labels = Object.keys(data);
+    const values = Object.values(data);
 
     const colors = [
       '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
@@ -28,19 +21,16 @@ const GenreDistributionChart = ({ dashboardData }) => {
     ];
 
     return {
-      labels: Object.keys(genreData),
-      datasets: [
-        {
-          data: Object.values(genreData),
-          backgroundColor: colors,
-          borderColor: 'white',
-          borderWidth: 2,
-          hoverOffset: 8
-        }
-      ]
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors.slice(0, labels.length),
+        borderColor: 'white',
+        borderWidth: 2,
+        hoverOffset: 8
+      }]
     };
   };
-
   const data = generateGenreData();
 
   const options = {
@@ -80,3 +70,4 @@ const GenreDistributionChart = ({ dashboardData }) => {
 };
 
 export default GenreDistributionChart;
+

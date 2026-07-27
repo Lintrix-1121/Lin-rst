@@ -3,10 +3,10 @@ import { Row, Col, Card } from 'react-bootstrap';
 
 const StatsCards = ({ stats }) => {
   const statItems = [
-    { title: 'Total Plays', value: stats?.totalPlays || '0', icon: 'bi-play-circle', color: 'primary' },
-    { title: 'Downloads', value: stats?.downloads || '0', icon: 'bi-download', color: 'success' },
-    { title: 'Active Users', value: stats?.activeUsers || '0', icon: 'bi-people', color: 'info' },
-    { title: 'Revenue', value: stats?.revenue || '$0', icon: 'bi-currency-dollar', color: 'warning' },
+    { title: 'Total Plays', value: stats?.totalStreams || 0, icon: 'bi-play-circle', color: 'primary' },
+    { title: 'Downloads', value: stats?.totalDownloads || 0, icon: 'bi-download', color: 'success' },
+    { title: 'Monthly Streams', value: stats?.monthlyStreams || 0, icon: 'bi-calendar-month', color: 'info' },
+    { title: 'Avg Daily Streams', value: stats?.avgDailyStreams || 0, icon: 'bi-clock-history', color: 'warning' },
   ];
 
   return (
@@ -33,3 +33,4 @@ const StatsCards = ({ stats }) => {
 };
 
 export default StatsCards;
+

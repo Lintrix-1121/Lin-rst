@@ -43,6 +43,22 @@ class AnalyticsController {
     }
   }
 
+
+  async loadTimelineData(period = 'month', limit = 6) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const data = await this.model.fetchTimelineData(period, limit);
+      this.loading = false;
+      return data;
+    } catch (error) {
+      this.loading = false;
+      this.error = error.message;
+      throw error;
+    }
+  }
+
+
   async loadTopTracks(limit = 10) {
     console.log('AnalyticsController.loadTopTracks called with limit:', limit);
     this.loading = true;
@@ -82,5 +98,5 @@ class AnalyticsController {
   }
 }
 
-export default AnalyticsController;
+export default AnalyticsController; 
 

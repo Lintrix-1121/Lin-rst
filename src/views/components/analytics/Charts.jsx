@@ -1,18 +1,14 @@
 
-
 import React from 'react';
 import { Card } from 'react-bootstrap';
+import PlayHistoryChart from './PlayHistoryChart';
 
-const Charts = ({ controller }) => {
+const Charts = ({ chartData, timeRange }) => {
   return (
     <Card>
       <Card.Body>
         <h6>Play Trends</h6>
-        <div className="chart-placeholder p-4 text-center border rounded">
-          <i className="bi bi-bar-chart display-4 text-muted"></i>
-          <p className="mt-2">Play count chart visualization</p>
-          <small className="text-muted">Chart.js integration coming soon</small>
-        </div>
+        <PlayHistoryChart chartData={chartData} timeRange={timeRange} />
       </Card.Body>
     </Card>
   );

@@ -17,46 +17,35 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-);
+  );
 
-const FileFormatChart = ({ dashboardData }) => {
-  // Generate file format data
-  const generateFormatData = () => {
-    const formatData = {
-      'MP3': 65,
-      'FLAC': 15,
-      'WAV': 12,
-      'AAC': 5,
-      'OGG': 3
-    };
+  const FileFormatChart = ({ formatBreakdown }) => {
+    const generateFormatData = () => {
+      const data = formatBreakdown || { 'No Data': 1 };
+      const labels = Object.keys(data);
+      const values = Object.values(data);
 
-    return {
-      labels: Object.keys(formatData),
-      datasets: [
-        {
+      const colors = [
+        'rgba(59, 130, 246, 0.8)',
+        'rgba(16, 185, 129, 0.8)',
+        'rgba(245, 158, 11, 0.8)',
+        'rgba(139, 92, 246, 0.8)',
+        'rgba(14, 165, 233, 0.8)'
+      ];
+
+      return {
+        labels,
+        datasets: [{
           label: 'Tracks',
-          data: Object.values(formatData),
-          backgroundColor: [
-            'rgba(59, 130, 246, 0.8)',
-            'rgba(16, 185, 129, 0.8)',
-            'rgba(245, 158, 11, 0.8)',
-            'rgba(139, 92, 246, 0.8)',
-            'rgba(14, 165, 233, 0.8)'
-          ],
-          borderColor: [
-            'rgb(59, 130, 246)',
-            'rgb(16, 185, 129)',
-            'rgb(245, 158, 11)',
-            'rgb(139, 92, 246)',
-            'rgb(14, 165, 233)'
-          ],
+          data: values,
+          backgroundColor: colors.slice(0, labels.length),
+          borderColor: colors.map(c => c.replace('0.8', '1')),
           borderWidth: 1,
           borderRadius: 4,
-        }
-      ]
+        }]
+      };
     };
-  };
-
+    
   const data = generateFormatData();
 
   const options = {
@@ -104,3 +93,4 @@ const FileFormatChart = ({ dashboardData }) => {
 };
 
 export default FileFormatChart;
+

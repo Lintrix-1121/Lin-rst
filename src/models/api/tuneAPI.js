@@ -37,7 +37,8 @@ export const tuneAPI = {
   getPlaylistAddCount: (id) => ApiService.get(`${API_BASE}/tune/${id}/playlist-adds`),
 
   //File operations
-  downloadBlob: (id) => ApiService.get(`${API_BASE}/dold/download/${id}`, { responseType: 'blob', _skipAuthRedirect: true }),
+  downloadBlob: (id) => 
+    ApiService.get(`${API_BASE}/dold/download/${id}`, { responseType: 'blob', _skipAuthRedirect: true }),
   streamBlob: (id) => ApiService.get(`${API_BASE}/dold/stream/${id}`, { responseType: 'blob' }),
 
   getStreamUrl: (id) => {
@@ -48,7 +49,28 @@ export const tuneAPI = {
     const token = getToken();
     return `${API_BASE}/dold/download/${id}${token ? `?token=${token}` : ''}`;
   },
+
+  getOverallMonthlyStreams: (params) => 
+    ApiService.get(`${API_BASE}/tune/stats/monthly`, { params }),
+  
+  getAverageStreams: (params) => 
+    ApiService.get(`${API_BASE}/tune/stats/averages`, { params }),
+  
+  getRepeatRate: (id, params) => 
+    ApiService.get(`${API_BASE}/tune/${id}/repeat-rate`, { params }),
+  
+  getPlaylistAddCount: (id) => 
+    ApiService.get(`${API_BASE}/tune/${id}/playlist-adds`),
+  
+  getMonthlyStreams: (id, params) => 
+    ApiService.get(`${API_BASE}/tune/${id}/streams/monthly`, { params }),
+  
+  getTotalStats: () => ApiService.get(`${API_BASE}/tune/stats/totals`),
+  
+  getTimelineData: (params) => ApiService.get(`${API_BASE}/tune/stats/timeline`, { params }),
   
   //Batch operations
   batchUpdate: (updates) => ApiService.patch(`${API_BASE}/tune/batch`, updates)
+
+  
 };

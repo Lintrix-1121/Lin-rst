@@ -18,56 +18,88 @@ const Dashboard = () => {
   }, []);
 
   
-
   const loadDashboardData = useCallback(async () => {
-  try {
-    setLoading(true);
-    setError(null);
-    console.log('🔄 Starting dashboard data load...');
+    try {
+      setLoading(true);
+      const data = await analyticsController.loadDashboardData();
+      const stats = data?.stats || {};
+      const topTracks = data?.topTracks || [];
 
-    const [analyticsData, tunes, monthlyStats, avgStats] = await Promise.all([
-      analyticsController.loadDashboardData(),
-      tuneController.loadTunes({ limit: 1000 }),
-      tuneController.getOverallMonthlyStreams(),
-      tuneController.getAverageStreams
-    ]);
+      setQuickStats({
+        totalTracks: stats.totalTracks || 0,
+        storageUsed: parseFloat((stats.totalStorage / (1024 * 1024 * 1024)).toFixed(1)),
+        totalPlays: stats.totalStreams || 0,
+        totalDownloads: stats.totalDownloads || 0,
+        monthlyStreams: stats.monthlyStreams || 0,
+        avgDailyStreams: stats.avgDailyStreams || 0,
+      });
 
-    console.log('📊 Analytics data received:', analyticsData);
-    console.log('🎵 Tunes data received:', tunes);
-    console.log('🎵 Number of tunes:', Array.isArray(tunes) ? tunes.length : 'Not an array');
+      setDashboardData({
+        stats: {
+          totalPlays: stats.totalStreams || 0,
+          downloads: stats.totalDownloads || 0,
+          monthlyStreams: stats.monthlyStreams || 0,
+          avgDailyStreams: stats.avgDailyStreams || 0,
+        },
+        topTracks
+      });
+    } catch (err) {
+      // handle error
+    } finally {
+      setLoading(false);
+    }
+  }, [analyticsController]);
 
-    setDashboardData({
-      ...analyticsData, monthly: monthlyStats, average: avgStats
-    });
+
+//   const loadDashboardData = useCallback(async () => {
+//   try {
+//     setLoading(true);
+//     setError(null);
+//     console.log('🔄 Starting dashboard data load...');
+
+//     const [analyticsData, tunes, monthlyStats, avgStats] = await Promise.all([
+//       analyticsController.loadDashboardData(),
+//       tuneController.loadTunes({ limit: 1000 }),
+//       tuneController.getOverallMonthlyStreams(),
+//       tuneController.getAverageStreams
+//     ]);
+
+//     console.log('📊 Analytics data received:', analyticsData);
+//     console.log('🎵 Tunes data received:', tunes);
+//     console.log('🎵 Number of tunes:', Array.isArray(tunes) ? tunes.length : 'Not an array');
+
+//     setDashboardData({
+//       ...analyticsData, monthly: monthlyStats, average: avgStats
+//     });
     
-    // Calculate quick stats
-    const tunesArray = Array.isArray(tunes) ? tunes : [];
-    const totalStorage = tunesArray.reduce((acc, tune) => acc + (tune.file_size || 0), 0);
+//     // Calculate quick stats
+//     const tunesArray = Array.isArray(tunes) ? tunes : [];
+//     const totalStorage = tunesArray.reduce((acc, tune) => acc + (tune.file_size || 0), 0);
     
-    setQuickStats({
-      totalTracks: tunesArray.length,
-      recentUploads: tunesArray.slice(0, 5).length,
-      storageUsed: parseFloat((totalStorage / (1024 * 1024 * 1024)).toFixed(1))
-    });
+//     setQuickStats({
+//       totalTracks: tunesArray.length,
+//       recentUploads: tunesArray.slice(0, 5).length,
+//       storageUsed: parseFloat((totalStorage / (1024 * 1024 * 1024)).toFixed(1))
+//     });
 
-    console.log('✅ Dashboard data loaded successfully');
+//     console.log('✅ Dashboard data loaded successfully');
 
-  } catch (err) {
-    console.error('❌ Failed to load dashboard data:', err);
-    setError(err.message);
-    setQuickStats({
-      totalTracks: 0,
-      recentUploads: 0,
-      storageUsed: 0
-    });
-    setDashboardData({
-      stats: { totalPlays: 0, downloads: 0 },
-      topTracks: []
-    });
-  } finally {
-    setLoading(false);
-  }
-}, [analyticsController, tuneController]);
+//   } catch (err) {
+//     console.error('❌ Failed to load dashboard data:', err);
+//     setError(err.message);
+//     setQuickStats({
+//       totalTracks: 0,
+//       recentUploads: 0,
+//       storageUsed: 0
+//     });
+//     setDashboardData({
+//       stats: { totalPlays: 0, downloads: 0 },
+//       topTracks: []
+//     });
+//   } finally {
+//     setLoading(false);
+//   }
+// }, [analyticsController, tuneController]);
 
   const QuickActionCard = ({ title, description, icon, action, buttonText, variant = 'primary' }) => (
     <Card className="h-100 quick-action-card">
