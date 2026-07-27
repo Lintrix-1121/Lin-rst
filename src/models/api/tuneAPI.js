@@ -7,7 +7,7 @@ export const tuneAPI = {
   getAll: (params = {}) => ApiService.get(`${API_BASE}/tune/`, { params }),
   getTotalCount: (params = {}) => ApiService.get(`${API_BASE}/tune/stats/count`, { params }),
   getStatistics: (params = {}) => ApiService.get(`${API_BASE}/tune/stats`, { params }),
-  getById: (id) => ApiService.get(`${API_BASE}/tunes/${id}`),
+  getById: (id) => ApiService.get(`${API_BASE}/tunes/${id}`), // check if route is /tune/:id or /tunes/:id
   getRecent: (params = {}) => ApiService.get(`${API_BASE}/tunes/recent`, { params }),
   create: (data) => ApiService.post(`${API_BASE}/tunes`, data),
   update: (id, data) => ApiService.put(`${API_BASE}/tune/${id}`, data),
@@ -29,6 +29,13 @@ export const tuneAPI = {
   getFavorites: (params = {}) => ApiService.get(`${API_BASE}/tune/favorites`, { params }),
   getRecentlyPlayed: (params = {}) => ApiService.get(`${API_BASE}/tune/recently-played`, { params }),
   
+  // --- New Analytics Endpoints ---
+  getMonthlyStreams: (id, params = {}) => ApiService.get(`${API_BASE}/tune/${id}/streams/monthly`, { params }),
+  getOverallMonthlyStreams: (params = {}) => ApiService.get(`${API_BASE}/tune/stats/monthly`, { params }),
+  getAverageStreams: (params = {}) => ApiService.get(`${API_BASE}/tune/stats/averages`, { params }),
+  getRepeatRate: (id, params = {}) => ApiService.get(`${API_BASE}/tune/${id}/repeat-rate`, { params }),
+  getPlaylistAddCount: (id) => ApiService.get(`${API_BASE}/tune/${id}/playlist-adds`),
+
   //File operations
   downloadBlob: (id) => ApiService.get(`${API_BASE}/dold/download/${id}`, { responseType: 'blob', _skipAuthRedirect: true }),
   streamBlob: (id) => ApiService.get(`${API_BASE}/dold/stream/${id}`, { responseType: 'blob' }),
@@ -45,8 +52,3 @@ export const tuneAPI = {
   //Batch operations
   batchUpdate: (updates) => ApiService.patch(`${API_BASE}/tune/batch`, updates)
 };
-
-
-
-
-

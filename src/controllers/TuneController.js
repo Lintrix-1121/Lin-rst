@@ -368,14 +368,80 @@ class TuneController {
   getFavoriteTunes() {
     return this.model.getFavoriteTunes();
   }
+
+
+  async getMonthlyStreams(id, params = {}) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const data = await this.model.getMonthlyStreams(id, params);
+      this.loading = false;
+      return data;
+    } catch (error) {
+      this.loading = false;
+      this.error = error.message;
+      throw error;
+    }
+  }
+
+  async getOverallMonthlyStreams(params = {}) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const data = await this.model.getOverallMonthlyStreams(params);
+      this.loading = false;
+      return data;
+    } catch (error) {
+      this.loading = false;
+      this.error = error.message;
+      throw error;
+    }
+  }
+
+  async getAverageStreams(params = {}) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const data = await this.model.getAverageStreams(params);
+      this.loading = false;
+      return data;
+    } catch (error) {
+      this.loading = false;
+      this.error = error.message;
+      throw error;
+    }
+  }
+
+  async getRepeatRate(id, params = {}) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const data = await this.model.getRepeatRate(id, params);
+      this.loading = false;
+      return data;
+    } catch (error) {
+      this.loading = false;
+      this.error = error.message;
+      throw error;
+    }
+  }
+
+  async getPlaylistAddCount(id) {
+    this.loading = true;
+    this.error = null;
+    try {
+      const data = await this.model.getPlaylistAddCount(id);
+      this.loading = false;
+      return data;
+    } catch (error) {
+      this.loading = false;
+      this.error = error.message;
+      throw error;
+    }
+  }
 }
 
 export default TuneController;
-
-
-
-
-
 
 
 

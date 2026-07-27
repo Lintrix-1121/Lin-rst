@@ -530,7 +530,70 @@ class TuneModel {
       }
     ];
   }
+
+
+  async getMonthlyStreams(id, params = {}) {
+    try {
+      const response = await tuneAPI.getMonthlyStreams(id, params);
+      if (response.data && response.data.success === true) {
+        return response.data.data || response.data;
+      }
+      throw new Error('API response not successful');
+    } catch (error) {
+      throw new Error(`Failed to fetch monthly streams: ${error.message}`);
+    }
+  }
+
+  async getOverallMonthlyStreams(params = {}) {
+    try {
+      const response = await tuneAPI.getOverallMonthlyStreams(params);
+      if (response.data && response.data.success === true) {
+        return response.data.data || response.data;
+      }
+      throw new Error('API response not successful');
+    } catch (error) {
+      throw new Error(`Failed to fetch overall monthly streams: ${error.message}`);
+    }
+  }
+
+  async getAverageStreams(params = {}) {
+    try {
+      const response = await tuneAPI.getAverageStreams(params);
+      if (response.data && response.data.success === true) {
+        return response.data.data || response.data;
+      }
+      throw new Error('API response not successful');
+    } catch (error) {
+      throw new Error(`Failed to fetch average streams: ${error.message}`);
+    }
+  }
+
+  async getRepeatRate(id, params = {}) {
+    try {
+      const response = await tuneAPI.getRepeatRate(id, params);
+      if (response.data && response.data.success === true) {
+        return response.data.data || response.data;
+      }
+      throw new Error('API response not successful');
+    } catch (error) {
+      throw new Error(`Failed to fetch repeat rate: ${error.message}`);
+    }
+  }
+
+  async getPlaylistAddCount(id) {
+    try {
+      const response = await tuneAPI.getPlaylistAddCount(id);
+      if (response.data && response.data.success === true) {
+        return response.data.data || response.data;
+      }
+      throw new Error('API response not successful');
+    } catch (error) {
+      throw new Error(`Failed to fetch playlist add count: ${error.message}`);
+    }
+  }
+
 }
 
 export default TuneModel;
+
 

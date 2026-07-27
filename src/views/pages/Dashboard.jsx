@@ -25,16 +25,20 @@ const Dashboard = () => {
     setError(null);
     console.log('🔄 Starting dashboard data load...');
 
-    const [analyticsData, tunes] = await Promise.all([
+    const [analyticsData, tunes, monthlyStats, avgStats] = await Promise.all([
       analyticsController.loadDashboardData(),
-      tuneController.loadTunes({ limit: 1000 })
+      tuneController.loadTunes({ limit: 1000 }),
+      tuneController.getOverallMonthlyStreams(),
+      tuneController.getAverageStreams
     ]);
 
     console.log('📊 Analytics data received:', analyticsData);
     console.log('🎵 Tunes data received:', tunes);
     console.log('🎵 Number of tunes:', Array.isArray(tunes) ? tunes.length : 'Not an array');
 
-    setDashboardData(analyticsData);
+    setDashboardData({
+      ...analyticsData, monthly: monthlyStats, average: avgStats
+    });
     
     // Calculate quick stats
     const tunesArray = Array.isArray(tunes) ? tunes : [];
@@ -194,6 +198,32 @@ const Dashboard = () => {
             </Card.Body>
           </Card>
         </Col>
+        <Col lg={3} md={6} className="mb-3">
+          <Card className="stat-card">
+            <Card.Body>
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Monthly Streams</h6>
+                  <h3 className="text-primary">{dashboardData?.monthly?.total_streams || 0}</h3>
+                </div>
+                <i className="bi bi-calendar3 display-6 text-muted"></i>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={3} md={6} className="mb-3">
+          <Card className="stat-card">
+            <Card.Body>
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Avg Daily Streams</h6>
+                  <h3 className="text-info">{dashboardData?.averages?.average_streams_per_day || 0}</h3>
+                </div>
+                <i className="bi bi-graph-up display-6 text-muted"></i>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
       </Row>
 
       {/* Quick Actions */}
@@ -281,3 +311,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+
