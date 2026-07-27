@@ -30,8 +30,6 @@ const PlayHistoryChart = ({ chartData, timeRange }) => {
     datasets: [{ label: 'Streams', data: [0], borderColor: 'rgb(59, 130, 246)', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4 }]
   };
 
-  const data = chartData || defaultData;
-
   const options = {
     responsive: true,
     maintainAspectRatio: false,
