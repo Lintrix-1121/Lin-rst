@@ -3,7 +3,7 @@ import ApiService from "./ApiSevice";
 
 const AuthService = {
   //Get current authenticated user info
-  getAuthStatus = async (req, res) => {
+  async getAuthStatus (req, res) {
     try {
       if (!req.user) {
         return res.status(401).json({
