@@ -214,7 +214,7 @@ const AnalyticsDashboard = () => {
               </h5>
             </Card.Header>
             <Card.Body>
-              <TopTracksChart topTracks={topTracks} />
+              <TopTracksChart tracks={topTracks} />
             </Card.Body>
           </Card>
         </Col>
@@ -229,7 +229,7 @@ const AnalyticsDashboard = () => {
               </h5>
             </Card.Header>
             <Card.Body>
-              <GenreDistributionChart dashboardData={dashboardData} />
+              <GenreDistributionChart distribution={dashboardData?.GenreDistribution || []} />
             </Card.Body>
           </Card>
         </Col>
@@ -244,7 +244,7 @@ const AnalyticsDashboard = () => {
               </h5>
             </Card.Header>
             <Card.Body>
-              <FileFormatChart dashboardData={dashboardData} />
+              <FileFormatChart distribution={dashboardData?.FileFormatDistribution || []} />
             </Card.Body>
           </Card>
         </Col>
@@ -254,4 +254,5 @@ const AnalyticsDashboard = () => {
 };
 
 export default AnalyticsDashboard;
+
 

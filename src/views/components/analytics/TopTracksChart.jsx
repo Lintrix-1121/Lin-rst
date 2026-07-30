@@ -1,25 +1,19 @@
 import React from 'react';
 import { ListGroup, Badge } from 'react-bootstrap';
 
-const TopTracksChart = ({ topTracks }) => {
+const TopTracksChart = ({ tracks }) => {
+  const safeTracks = tracks && tracks.length > 0 ? tracks : [
+    { name: 'No Tracks', artist: '', plays: 0 }
+  ];
+
   const formatPlays = (plays) => {
     if (plays >= 1000) return (plays / 1000).toFixed(1) + 'K';
     return plays;
   };
 
-  const defaultTracks = [
-    { name: 'Summer Vibes', artist: 'DJ Cool', plays: 4521 },
-    { name: 'Midnight Drive', artist: 'Electro Flow', plays: 3890 },
-    { name: 'Ocean Waves', artist: 'Nature Sounds', plays: 3215 },
-    { name: 'Urban Beat', artist: 'City Producers', plays: 2987 },
-    { name: 'Mountain High', artist: 'Nature Sounds', plays: 2654 }
-  ];
-
-  const tracks = topTracks && topTracks.length > 0 ? topTracks : defaultTracks;
-
   return (
     <ListGroup variant="flush">
-      {tracks.map((track, index) => (
+      {safeTracks.map((track, index) => (
         <ListGroup.Item 
           key={index}
           className="d-flex justify-content-between align-items-center px-0 py-3 border-bottom"
@@ -43,11 +37,11 @@ const TopTracksChart = ({ topTracks }) => {
           </Badge>
         </ListGroup.Item>
       ))}
+      {safeTracks.length === 1 && safeTracks[0].name === 'No Tracks' && (
+        <p className="text-muted text-center mt-3">No track data available</p>
+      )}
     </ListGroup>
   );
 };
 
 export default TopTracksChart;
-
-
-

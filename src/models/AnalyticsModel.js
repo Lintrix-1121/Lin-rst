@@ -1,5 +1,5 @@
 
-import { tuneAPI } from './api/tuneAPI';
+import { tuneAPI } from './api/tuneAPI'; 
 
 class AnalyticsModel {
   constructor() {
@@ -9,126 +9,78 @@ class AnalyticsModel {
   }
 
   
-  //Fetch all dashboard statistics from the backend
   async fetchDashboardStats() {
     try {
-      const totalStats = await tuneAPI.getTotalStats();
-      const totalData = totalStats?.data?.data || {};
-      const totalTracks = totalData.total_tracks || 0;
-      const totalStreams = totalData.total_streams || 0;
-      const totalDownloads = totalData.total_downloads || 0;
-      const totalStorage = totalData.total_storage || 0;
+      console.log('📊 Fetching dashboard stats from backend...');
 
-      const monthlyData = await tuneAPI.getOverallMonthlyStreams();
-      const monthlyStreams = monthlyData?.data?.total_streams || 0;
+      // Fetch all tunes (adjust limit if needed)
+      const allTunesResponse = await tuneAPI.getAll({ limit: 1000 });
+      const allTunes = allTunesResponse?.data?.data?.tunes || allTunesResponse?.data?.tunes || [];
 
-      const avgData = await tuneAPI.getAverageStreams({ days: 30 });
-      const avgDailyStreams = parseFloat(avgData?.data?.average_streams_per_day) || 0;
-
+      // Fetch top 5 most played tunes
       const topTracksData = await tuneAPI.getMostPlayed({ limit: 5 });
       const topTracks = topTracksData?.data?.data?.tunes || topTracksData?.data?.tunes || [];
 
-      // No need to fetch all tunes anymore
+      let totalPlays = 0;
+      let totalDownloads = 0;
+      let totalStorage = 0;
+      let totalDuration = 0;
+      let favoriteTracks = 0;
+      const genreMap = {};
+      const formatMap = {};
+
+      allTunes.forEach(tune => {
+        totalPlays += tune.play_count || 0;
+        totalDownloads += tune.download_count || 0; // if not available, keep 0
+        totalStorage += tune.file_size || 0;
+        totalDuration += tune.duration || 0;
+        if (tune.favorite) favoriteTracks++;
+
+        const genre = tune.genre || 'Unknown';
+        genreMap[genre] = (genreMap[genre] || 0) + 1;
+        const format = tune.file_format || 'Unknown';
+        formatMap[format] = (formatMap[format] || 0) + 1;
+      });
+
+      const totalTracks = allTunes.length;
+      const averagePlaysPerTrack = totalTracks > 0 ? Math.round(totalPlays / totalTracks) : 0;
+
+      // Build stats object with names matching the component
       this.stats = {
+        totalPlays,
+        downloads: totalDownloads,
         totalTracks,
-        totalStreams,
-        totalDownloads,
-        totalStorage,
-        totalDuration: 0, // we may still need duration, but can skip for now
-        favoriteCount: 0, // we can get from a separate endpoint if needed
-        monthlyStreams,
-        avgDailyStreams,
-        averagePlaysPerTrack: totalTracks > 0 ? Math.round(totalStreams / totalTracks) : 0,
+        favoriteTracks,
+        storageUsed: totalStorage,
+        totalDuration,
+        averagePlaysPerTrack,
+        monthlyStreams: 0,   // you can compute from last 30 days if needed
+        avgDailyStreams: 0,
       };
 
       this.topTracks = topTracks.map(t => ({
         id: t.id,
         name: t.title || t.name,
         artist: t.artist,
-        plays: t.stream_count || t.plays || 0,
+        plays: t.play_count || 0,
         duration: t.duration,
       }));
 
-      return { stats: this.stats, topTracks: this.topTracks };
+      // Build distributions
+      const genreDistribution = Object.entries(genreMap).map(([name, value]) => ({ name, value }));
+      const fileFormatDistribution = Object.entries(formatMap).map(([name, value]) => ({ name, value }));
+
+      return {
+        stats: this.stats,
+        genreDistribution,
+        fileFormatDistribution,
+        topTracks: this.topTracks,
+      };
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
       return this.getEmptyStats();
     }
-  } 
- 
- // async fetchDashboardStats() {
-  //   try {
-  //     console.log('📊 Fetching dashboard stats from backend...');
-
-  //     //Get total tune count and format breakdown usingtotal count
-  //     const totalCountData = await tuneAPI.getTotalCount();
-  //     const totalTracks = totalCountData?.data?.total_count || 0;
-
-  //     // Get overall monthly streams (current month)
-  //     const monthlyData = await tuneAPI.getOverallMonthlyStreams();
-  //     const monthlyStreams = monthlyData?.data?.total_streams || 0;
-
-  //     //Get average daily streams over the last 30 days
-  //     const avgData = await tuneAPI.getAverageStreams({ days: 30 });
-  //     const avgDailyStreams = parseFloat(avgData?.data?.average_streams_per_day) || 0;
-
-  //     // Get top 5 most played tunes (using stream_count)
-  //     const topTracksData = await tuneAPI.getMostPlayed({ limit: 5 });
-  //     const topTracks = topTracksData?.data?.tunes || [];
-
-  //     //Get all tunes to compute total streams and downloads (or we could add a backend endpoint for totals)
-  //     //fetch a large batch to sum stream_count and download_count
-  //     const allTunesResponse = await tuneAPI.getAll({ limit: 1000 });
-  //     const allTunes = allTunesResponse?.data?.data?.tunes || allTunesResponse?.data?.tunes || [];
-
-  //     let totalStreams = 0;
-  //     let totalDownloads = 0;
-  //     let totalStorage = 0;
-  //     let totalDuration = 0;
-  //     let favoriteCount = 0;
-
-  //     allTunes.forEach(tune => {
-  //       totalStreams += tune.stream_count || 0;
-  //       totalDownloads += tune.download_count || 0;
-  //       totalStorage += tune.file_size || 0;
-  //       totalDuration += tune.duration || 0;
-  //       if (tune.favorite) favoriteCount++;
-  //     });
-
-  //     // Build stats object
-  //     this.stats = {
-  //       totalTracks,
-  //       totalStreams,
-  //       totalDownloads,
-  //       totalStorage,
-  //       totalDuration,
-  //       favoriteCount,
-  //       monthlyStreams,
-  //       avgDailyStreams,
-  //       // Additional derived metrics
-  //       averagePlaysPerTrack: totalTracks > 0 ? Math.round(totalStreams / totalTracks) : 0,
-  //     };
-
-  //     // Store top tracks
-  //     this.topTracks = topTracks.map(t => ({
-  //       id: t.id,
-  //       name: t.title || t.name,
-  //       artist: t.artist,
-  //       plays: t.stream_count || t.plays || 0,
-  //       duration: t.duration,
-  //     }));
-
-  //     return {
-  //       stats: this.stats,
-  //       topTracks: this.topTracks,
-  //     };
-  //   } catch (error) {
-  //     console.error('Error fetching dashboard stats:', error);
-  //     // Fallback to empty stats
-  //     return this.getEmptyStats();
-  //   }
-  // }
-
+  }
   
   //  Fetch chart data – currently not implemented in backend, so we generate mock trends
   async fetchChartData(timeRange = 'monthly') {
@@ -187,20 +139,21 @@ class AnalyticsModel {
   getChartData() { return this.chartData; }
   getTopTracks() { return this.topTracks; }
 
-  //Fallback empty data
   getEmptyStats() {
     return {
       stats: {
+        totalPlays: 0,
+        downloads: 0,
         totalTracks: 0,
-        totalStreams: 0,
-        totalDownloads: 0,
-        totalStorage: 0,
+        favoriteTracks: 0,
+        storageUsed: 0,
         totalDuration: 0,
-        favoriteCount: 0,
+        averagePlaysPerTrack: 0,
         monthlyStreams: 0,
         avgDailyStreams: 0,
-        averagePlaysPerTrack: 0,
       },
+      genreDistribution: [],
+      fileFormatDistribution: [],
       topTracks: []
     };
   }

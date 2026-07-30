@@ -17,44 +17,36 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend
-  );
+);
 
-  const FileFormatChart = ({ formatBreakdown }) => {
-    const generateFormatData = () => {
-      const data = formatBreakdown || { 'No Data': 1 };
-      const labels = Object.keys(data);
-      const values = Object.values(data);
+const FileFormatChart = ({ distribution }) => {
+  const safeDistribution = distribution && distribution.length > 0 ? distribution : [{ name: 'No Data', value: 1 }];
 
-      const colors = [
-        'rgba(59, 130, 246, 0.8)',
-        'rgba(16, 185, 129, 0.8)',
-        'rgba(245, 158, 11, 0.8)',
-        'rgba(139, 92, 246, 0.8)',
-        'rgba(14, 165, 233, 0.8)'
-      ];
+  const colors = [
+    'rgba(59, 130, 246, 0.8)',
+    'rgba(16, 185, 129, 0.8)',
+    'rgba(245, 158, 11, 0.8)',
+    'rgba(139, 92, 246, 0.8)',
+    'rgba(14, 165, 233, 0.8)'
+  ];
 
-      return {
-        labels,
-        datasets: [{
-          label: 'Tracks',
-          data: values,
-          backgroundColor: colors.slice(0, labels.length),
-          borderColor: colors.map(c => c.replace('0.8', '1')),
-          borderWidth: 1,
-          borderRadius: 4,
-        }]
-      };
-    };
-    
-  const data = generateFormatData();
+  const data = {
+    labels: safeDistribution.map(d => d.name),
+    datasets: [{
+      label: 'Tracks',
+      data: safeDistribution.map(d => d.value),
+      backgroundColor: colors.slice(0, safeDistribution.length),
+      borderColor: colors.slice(0, safeDistribution.length).map(c => c.replace('0.8', '1')),
+      borderWidth: 1,
+      borderRadius: 4,
+    }]
+  };
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false
-      },
+      legend: { display: false },
       tooltip: {
         callbacks: {
           label: function(context) {
@@ -65,32 +57,26 @@ ChartJS.register(
     },
     scales: {
       x: {
-        grid: {
-          display: false,
-        },
-        ticks: {
-          color: '#6c757d',
-        }
+        grid: { display: false },
+        ticks: { color: '#6c757d' }
       },
       y: {
         beginAtZero: true,
-        grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
-        },
-        ticks: {
-          color: '#6c757d',
-          stepSize: 20
-        }
+        grid: { color: 'rgba(0, 0, 0, 0.05)' },
+        ticks: { color: '#6c757d', stepSize: 20 }
       }
     }
   };
 
   return (
     <div style={{ height: '300px' }}>
-      <Bar data={data} options={options} />
+      {safeDistribution.length === 1 && safeDistribution[0].name === 'No Data' ? (
+        <p className="text-muted text-center">No format data available</p>
+      ) : (
+        <Bar data={data} options={options} />
+      )}
     </div>
   );
 };
 
 export default FileFormatChart;
-

@@ -9,29 +9,25 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const GenreDistributionChart = ({ genreBreakdown }) => {
-  const generateGenreData = () => {
-    const data = genreBreakdown || { 'No Data': 1 };
-    const labels = Object.keys(data);
-    const values = Object.values(data);
+const GenreDistributionChart = ({ distribution }) => {
+  // Fallback if no data
+  const safeDistribution = distribution && distribution.length > 0 ? distribution : [{ name: 'No Data', value: 1 }];
 
-    const colors = [
-      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
-      '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA'
-    ];
+  const colors = [
+    '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD',
+    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9', '#F8C471', '#82E0AA'
+  ];
 
-    return {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: colors.slice(0, labels.length),
-        borderColor: 'white',
-        borderWidth: 2,
-        hoverOffset: 8
-      }]
-    };
+  const data = {
+    labels: safeDistribution.map(d => d.name),
+    datasets: [{
+      data: safeDistribution.map(d => d.value),
+      backgroundColor: colors.slice(0, safeDistribution.length),
+      borderColor: 'white',
+      borderWidth: 2,
+      hoverOffset: 8
+    }]
   };
-  const data = generateGenreData();
 
   const options = {
     responsive: true,
@@ -42,9 +38,7 @@ const GenreDistributionChart = ({ genreBreakdown }) => {
         labels: {
           usePointStyle: true,
           padding: 20,
-          font: {
-            size: 11
-          }
+          font: { size: 11 }
         }
       },
       tooltip: {
@@ -53,7 +47,7 @@ const GenreDistributionChart = ({ genreBreakdown }) => {
             const label = context.label || '';
             const value = context.raw || 0;
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = Math.round((value / total) * 100);
+            const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
             return `${label}: ${value} (${percentage}%)`;
           }
         }
@@ -64,10 +58,13 @@ const GenreDistributionChart = ({ genreBreakdown }) => {
 
   return (
     <div style={{ height: '300px' }}>
-      <Doughnut data={data} options={options} />
+      {safeDistribution.length === 1 && safeDistribution[0].name === 'No Data' ? (
+        <p className="text-muted text-center">No genre data available</p>
+      ) : (
+        <Doughnut data={data} options={options} />
+      )}
     </div>
   );
 };
 
 export default GenreDistributionChart;
-

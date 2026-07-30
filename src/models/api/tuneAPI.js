@@ -72,5 +72,6 @@ export const tuneAPI = {
   //Batch operations
   batchUpdate: (updates) => ApiService.patch(`${API_BASE}/tune/batch`, updates)
 
-  
+
 };
+
