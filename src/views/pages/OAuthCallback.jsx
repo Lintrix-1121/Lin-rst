@@ -29,13 +29,13 @@ const OAuthCallback = () => {
     // Save the token
     localStorage.setItem("authToken", token);
 
-    // Update auth context in the background (don't await)
+    // Update auth context in the background without await
     checkAuth().catch(console.error);
 
     // Clean the URL
     window.history.replaceState({}, "", "/");
 
-    // Navigate to the dashboard immediately
+    // Navigate to dashboard immediately
     navigate("/", { replace: true });
   }, [searchParams, navigate, checkAuth]);
 
