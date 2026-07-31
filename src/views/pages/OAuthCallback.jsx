@@ -27,10 +27,11 @@ const OAuthCallback = () => {
     localStorage.setItem("authToken", token);
 
     // Remove token from URL
-    window.history.replaceState({}, "", "/");
+   // window.history.replaceState({}, "", "/");
 
     // Navigate to dashboard immediately
-    navigate("/", { replace: true });
+    //navigate("/", { replace: true });
+    window.location.ref = "/";
   }, [searchParams, navigate]);
 
   if (error) {
