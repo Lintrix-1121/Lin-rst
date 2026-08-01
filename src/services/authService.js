@@ -3,49 +3,25 @@ import ApiService from "./ApiSevice";
 
 const AuthService = {
   //Get current authenticated user info
-  async getAuthStatus (req, res) {
+  async getStatus() {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      // No token → user is not authenticated
+      return { data: { authenticated: false, user: null } };
+    }
+
     try {
-      if (!req.user) {
-        return res.status(401).json({
-          authenticated: false,
-          message: "req.user missing"
-        });
-      }
-
-      const dbUser = await this.User.findByPk(req.user.userId);
-      console.log("DB user =", dbUser);  // full user from DB
-
-      if (!dbUser) {
-        return res.status(401).json({
-          authenticated: false,
-          message: "User not found",
-          user: null,
-        });
-      }
-
-      return res.status(200).json({
-        authenticated: true,
-        user: {
-          userId: dbUser.userId,          
-          userName: dbUser.userName,
-          email: dbUser.email,
-          provider: dbUser.provider,
-          providerId: dbUser.providerId,
-          createdAt: dbUser.createdAt,
-          updatedAt: dbUser.updatedAt,
-          profilePicture: dbUser.profilePicture,
-          lastLoginAt: dbUser.lastLoginAt,  
-          isActive: dbUser.isActive,
-        },
+      const response = await ApiService.get("/auth/status", {
+        headers: { Authorization: `Bearer ${token}` },
       });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({
-        authenticated: false,
-        message: "Unable to verify authentication",
-      });
+      return response; // expects { data: { authenticated: true, user: {...} } }
+    } catch (error) {
+      // If the token is invalid or request fails, treat as unauthenticated
+      return { data: { authenticated: false, user: null } };
     }
   },
+
+  
   logout() {
     return ApiService.post('/auth/logout');
   },

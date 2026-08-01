@@ -31,9 +31,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleOAuthRedirect = async () => {
-    if (token) {
-      localStorage.setItem("authToken", token);
-    }
     await checkAuth();
   };
   
