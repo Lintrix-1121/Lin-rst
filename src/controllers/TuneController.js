@@ -286,6 +286,32 @@ class TuneController {
     }
   }
 
+  async getTotalStats() {
+    this.loading = true;
+    try {
+      const data = await this.model.getTotalStats(); // you'll need to add this to model
+      this.loading = false;
+      return data;
+    } catch (error) {
+      this.loading = false;
+      this.error = error.message;
+      throw error;
+    }
+  }
+
+  async getTimelineData(params) {
+    this.loading = true;
+    try {
+      const data = await this.model.getTimelineData(params);
+      this.loading = false;
+      return data;
+    } catch (error) {
+      this.loading = false;
+      this.error = error.message;
+      throw error;
+    }
+  }
+
   //batch operations
   async batchUpdateTunes(updates) {
     this.loading = true;

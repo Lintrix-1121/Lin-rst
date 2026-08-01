@@ -4,7 +4,8 @@ import {
   Card, Button, Badge, Dropdown, Form, Modal,
   OverlayTrigger, Tooltip
 } from 'react-bootstrap';
-import Rating from 'react-rating';
+import StarRating from './StarRating';
+import TuneStats from './TuneStats';
 
 const TuneCard = ({
   tune,
