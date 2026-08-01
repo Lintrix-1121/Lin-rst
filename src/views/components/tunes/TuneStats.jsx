@@ -74,3 +74,5 @@ const TuneStats = ({ tuneId, controller }) => {
     </div>
   );
 };
+
+export default TuneStats;
