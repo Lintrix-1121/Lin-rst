@@ -1,3 +1,4 @@
+import { controllers } from 'chart.js';
 import React, { useState } from 'react';
 import {
   Card, Button, Badge, Dropdown, Form, Modal,
@@ -14,7 +15,8 @@ const TuneCard = ({
   onToggleFavorite,
   onUpdateRating,
   isSelected,
-  onSelect
+  onSelect,
+  controller
 }) => {
   const [imageError, setImageError] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
@@ -131,7 +133,7 @@ const TuneCard = ({
           )}
 
           {/* Rating Stars */}
-          <div className="mb-2">
+          {/* <div className="mb-2">
             <Rating
               initialRating={tune.rating || 0}
               emptySymbol="bi bi-star text-muted"
@@ -140,6 +142,15 @@ const TuneCard = ({
               stop={5}
               readonly={false}
               className="fs-6"
+            />
+            <span className="ms-2 small text-muted">({tune.rating || 0})</span>
+          </div> */}
+
+          <div className="mb-2">
+            <StarRating
+              rating={tune.rating || 0}
+              onRate={(newRating) => onUpdateRating(newRating)}
+              size="fs-6"
             />
             <span className="ms-2 small text-muted">({tune.rating || 0})</span>
           </div>
