@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Form, Spinner, Badge } from 'react-bootstrap';
-import { tuneAPI } from '../../models/api/tuneAPI';
+import { tuneAPI } from '../../../models/api/tuneAPI';
 
 const AudioPlayer = ({ tune, onEnd, onError, controller }) => {
   const audioRef = useRef(null);
