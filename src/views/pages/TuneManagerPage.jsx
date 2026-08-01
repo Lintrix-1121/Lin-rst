@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Spinner, Alert, Badge } from 'react-bootstrap';
 import TuneList from '../components/tunes/TuneList';
-import TuneController from '../controllers/TuneController';
+import TuneController from '../../controllers/TuneController';
 
 const TuneManagerPage = () => {
   const [controller] = useState(() => new TuneController());

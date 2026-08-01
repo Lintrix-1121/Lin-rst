@@ -531,7 +531,6 @@ class TuneModel {
     ];
   }
 
-
   async getMonthlyStreams(id, params = {}) {
     try {
       const response = await tuneAPI.getMonthlyStreams(id, params);
