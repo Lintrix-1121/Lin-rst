@@ -1,8 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Form, Spinner, Badge } from 'react-bootstrap';
-import { tuneAPI } from '../../../models/api/tuneAPI'; 
+import { tuneAPI } from '../../models/api/tuneAPI';
 
-const AudioPlayer = ({ tune, onEnd, onError }) => {
+const AudioPlayer = ({ tune, onEnd, onError, controller }) => {
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -11,69 +11,60 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [objectUrl, setObjectUrl] = useState(null);
+  const [playStartTime, setPlayStartTime] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
 
+  // Load audio blob when tune changes
   useEffect(() => {
     if (!tune) {
-      // Cleanup when no tune is set
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-        setObjectUrl(null);
-      }
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      setObjectUrl(null);
       return;
     }
 
     setLoading(true);
     setError(null);
     setIsPlaying(false);
+    setHasStarted(false);
 
-    // Fetch the audio as a blob
     tuneAPI.streamBlob(tune.id)
       .then(response => {
-        // Assuming ApiService returns the raw response with blob data
-        // If using axios, response.data is the Blob
         const blob = response.data;
         const url = URL.createObjectURL(blob);
         setObjectUrl(url);
-
         const audio = audioRef.current;
-        if (!audio) return;
-
-        audio.src = url;
-        audio.load();
-        audio.volume = volume;
-
-        // Auto-play after load
-        audio.play()
-          .then(() => setIsPlaying(true))
-          .catch(err => {
-            setError('Playback failed.');
-            onError?.(err);
-          });
+        if (audio) {
+          audio.src = url;
+          audio.load();
+          audio.volume = volume;
+          // Auto-play
+          audio.play()
+            .then(() => {
+              setIsPlaying(true);
+              setHasStarted(true);
+              setPlayStartTime(Date.now());
+            })
+            .catch(err => setError('Playback failed'));
+        }
         setLoading(false);
       })
       .catch(err => {
         setLoading(false);
-        setError('Failed to load audio.');
+        setError('Failed to load audio');
         onError?.(err);
       });
 
-    // Cleanup on unmount or tune change
     return () => {
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-        setObjectUrl(null);
-      }
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [tune, onError, volume]); // Re-fetch when tune changes
+  }, [tune, onError]);
 
-  // Effect to handle volume changes without re-fetching
+  // Handle volume changes
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
+    if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
 
-  // Event listeners for playback
+  // Event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -86,7 +77,7 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
       onEnd?.();
     };
     const handleError = (e) => {
-      setError('Playback error.');
+      setError('Playback error');
       onError?.(e);
     };
 
@@ -101,40 +92,62 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
     };
-  }, [tune, onEnd, onError]); // Re-attach when tune changes
+  }, [tune, onEnd, onError]);
+
+  // Record skip if user stops before 75% completion
+  const recordSkipIfNeeded = async () => {
+    if (duration > 0 && currentTime / duration < 0.75 && tune && controller) {
+      try {
+        await controller.recordSkip(tune.id);
+      } catch (err) {
+        console.error('Failed to record skip:', err);
+      }
+    }
+  };
 
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
+
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
+      recordSkipIfNeeded();
     } else {
-      audio.play().catch(err => {
-        setError('Play failed.');
-      });
+      audio.play().catch(err => setError('Play failed'));
+      if (!hasStarted) {
+        setHasStarted(true);
+        setPlayStartTime(Date.now());
+      }
       setIsPlaying(true);
     }
   };
 
+  // Cleanup skip on unmount or tune change
+  useEffect(() => {
+    return () => {
+      if (isPlaying && duration > 0 && currentTime / duration < 0.75 && tune && controller) {
+        controller.recordSkip(tune.id).catch(console.error);
+      }
+    };
+  }, [isPlaying, currentTime, duration, tune, controller]);
+
   const handleSeek = (e) => {
     const audio = audioRef.current;
     if (!audio || !duration) return;
-    const seekTime = (e.target.value / 100) * duration;
+    const val = parseFloat(e.target.value);
+    const seekTime = (val / 100) * duration;
     audio.currentTime = seekTime;
     setCurrentTime(seekTime);
   };
 
-  const handleVolumeChange = (e) => {
-    const newVol = parseFloat(e.target.value);
-    setVolume(newVol);
-  };
+  const handleVolumeChange = (e) => setVolume(parseFloat(e.target.value));
 
-  const formatTime = (seconds) => {
-    if (!seconds || isNaN(seconds)) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const formatTime = (sec) => {
+    if (!sec || isNaN(sec)) return '0:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
   if (!tune) return null;
@@ -157,9 +170,10 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
               <Button
                 variant="outline-primary"
                 size="sm"
+                className="play-toggle rounded-circle"
+                style={{ width: 38, height: 38 }}
                 onClick={togglePlay}
                 disabled={loading || !!error}
-                className="play-toggle"
               >
                 {isPlaying ? <i className="bi bi-pause-fill" /> : <i className="bi bi-play-fill" />}
               </Button>
@@ -199,25 +213,19 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
           right: 0;
           z-index: 1050;
           border-radius: 0;
-          margin: 0;
           background: #f8f9fa;
           border-top: 1px solid #dee2e6;
           box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
         }
         .play-toggle {
-          width: 38px;
-          height: 38px;
-          border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
         }
         .seek-bar { flex: 1; }
         .time-label { min-width: 40px; font-variant-numeric: tabular-nums; }
-        .track-info { min-width: 120px; }
         @media (max-width: 576px) {
           .audio-player .card-body { padding: 0.5rem; }
-          .track-info h6 { font-size: 0.9rem; }
           .time-label { min-width: 30px; font-size: 0.7rem; }
         }
       `}</style>
@@ -226,3 +234,4 @@ const AudioPlayer = ({ tune, onEnd, onError }) => {
 };
 
 export default AudioPlayer;
+
