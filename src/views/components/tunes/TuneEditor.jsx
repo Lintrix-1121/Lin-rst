@@ -4,7 +4,7 @@ import {
   Spinner, Badge, Card 
 } from 'react-bootstrap';
 
-const TuneEditor = ({ show, tune, onClose, onSave, tuneController }) => {
+const TuneEditor = ({ show, tune, onClose, onSave, controller }) => {
   const [formData, setFormData] = useState({
     title: '',
     artist: '',
@@ -80,10 +80,10 @@ const TuneEditor = ({ show, tune, onClose, onSave, tuneController }) => {
 
       if (tune) {
         // Update existing tune
-        await tuneController.updateTune(tune.id, submitData);
+        await controller.updateTune(tune.id, submitData);
       } else {
         // Create new tune
-        await tuneController.createTune(submitData);
+        await controller.createTune(submitData);
       }
 
       onSave();

@@ -7,7 +7,7 @@ export const tuneAPI = {
   getAll: (params = {}) => ApiService.get(`${API_BASE}/tune/`, { params }),
   getTotalCount: (params = {}) => ApiService.get(`${API_BASE}/tune/stats/count`, { params }),
   getStatistics: (params = {}) => ApiService.get(`${API_BASE}/tune/stats`, { params }),
-  getById: (id) => ApiService.get(`${API_BASE}/tunes/${id}`), // check if route is /tune/:id or /tunes/:id
+  getById: (id) => ApiService.get(`${API_BASE}/tune/${id}`),
   getRecent: (params = {}) => ApiService.get(`${API_BASE}/tune/recent`, { params }),
   create: (data) => ApiService.post(`${API_BASE}/tunes`, data),
   update: (id, data) => ApiService.put(`${API_BASE}/tune/${id}`, data),
@@ -29,7 +29,7 @@ export const tuneAPI = {
   getFavorites: (params = {}) => ApiService.get(`${API_BASE}/tune/favorites`, { params }),
   getRecentlyPlayed: (params = {}) => ApiService.get(`${API_BASE}/tune/recently-played`, { params }),
   
-  // --- New Analytics Endpoints ---
+  //Analytics Endpoints ---
   getMonthlyStreams: (id, params = {}) => ApiService.get(`${API_BASE}/tune/${id}/streams/monthly`, { params }),
   getOverallMonthlyStreams: (params = {}) => ApiService.get(`${API_BASE}/tune/stats/monthly`, { params }),
   getAverageStreams: (params = {}) => ApiService.get(`${API_BASE}/tune/stats/averages`, { params }),

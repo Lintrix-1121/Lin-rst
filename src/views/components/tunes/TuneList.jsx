@@ -28,6 +28,12 @@ const TuneList = ({ controller }) => {
 
   // Load tunes based on filter
   const loadTunes = useCallback(async () => {
+      if (!controller) {
+      setError('Controller not available');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -47,13 +53,17 @@ const TuneList = ({ controller }) => {
       }
       setTunes(Array.isArray(data) ? data : []);
       setSelectedIds([]); // clear selection on filter change
+       if (onTunesLoaded) {
+        const fullList = viewFilter === 'all' ? data : await controller.loadTunes({ limit: 1000 });
+        onTunesLoaded(fullList);
+      }
     } catch (err) {
       console.error('Error loading tunes:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [controller, viewFilter]);
+  }, [controller, viewFilter, onTunesLoaded]);
 
   useEffect(() => {
     loadTunes();
