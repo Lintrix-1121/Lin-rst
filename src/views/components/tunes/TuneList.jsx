@@ -165,43 +165,33 @@ const TuneList = ({ controller, onTunesLoaded }) => {
   };
 
 
-  const handleDownloadTune = async (tuneId) => {
-    const tune = tunes.find(t => t.id === tuneId);
-      if (!tune) {
-         toast.error('Tune not found');
-     return;
-    }
-
+  const handleDownloadTune = async (tune) => {
     const toastId = toast.loading(`Preparing ${tune.title}...`);
-
     try {
-      const response = await tuneAPI.downloadBlob(tuneId);
-      const blob = response.data;
-
-      const url = window.URL.createObjectURL(blob);
+      const response = await tuneAPI.downloadBlob(tune.id);
+      // response.data should be a Blob
+      if (!(response.data instanceof Blob)) {
+        throw new Error('Unexpected response type');
+      }
+      const url = URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.success(`Downloaded: ${tune.title}`, { id: toastId });
-    } catch (error) {
-      console.error('Download failed:', error);
-      if (error.response?.status === 401) {
-        toast.error('Please login again to download.', { id: toastId });
-      // Optionally, manually redirect after a delay
-      setTimeout(() => {
-        window.location.href = '/login';
-      }, 2000);
-    } else {
-     toast.error('Download failed. Please try again.', { id: toastId });
-    }
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast.success(`Downloaded ${tune.title}`, { id: toastId });
+    } catch (err) {
+      console.error('Download error:', err);
+      // If the server returned JSON error, it will be in response.data
+      if (err.response && err.response.data) {
+        toast.error(err.response.data.message || 'Download failed', { id: toastId });
+      } else {
+        toast.error('Download failed. Please try again.', { id: toastId });
+      }
     }
   };
-
   // const handleDownloadTune = async (tune) => {
   //   const toastId = toast.loading(`Preparing ${tune.title}...`);
   //   try {
