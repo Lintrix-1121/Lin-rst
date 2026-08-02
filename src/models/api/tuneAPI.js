@@ -20,7 +20,7 @@ export const tuneAPI = {
   //playback tracking
   recordPlay: (id) => ApiService.post(`${API_BASE}/tune/${id}/play`),
   recordSkip: (id) => ApiService.post(`${API_BASE}/tune/${id}/skip`),
-  updateRating: (id, rating) => ApiService.put(`${API_BASE}/tunes/${id}/rating`, { rating }),
+  updateRating: (id, rating) => ApiService.put(`${API_BASE}/tune/${id}/rating`, { rating }),
   toggleFavorite: (id) => ApiService.put(`${API_BASE}/tune/${id}/favorite`),
   
   //analytics and statistics
