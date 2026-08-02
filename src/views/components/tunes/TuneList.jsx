@@ -164,23 +164,61 @@ const TuneList = ({ controller, onTunesLoaded }) => {
     }
   };
 
-  const handleDownloadTune = async (tune) => {
+
+  const handleDownloadTune = async (tuneId) => {
+    const tune = tunes.find(t => t.id === tuneId);
+      if (!tune) {
+         toast.error('Tune not found');
+     return;
+    }
+
     const toastId = toast.loading(`Preparing ${tune.title}...`);
+
     try {
-      const blob = await controller.downloadTune?.(tune.id) || await fetchDownload(tune.id);
-      const url = URL.createObjectURL(blob);
+      const response = await tuneAPI.downloadBlob(tuneId);
+      const blob = response.data;
+
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast.success(`Downloaded ${tune.title}`, { id: toastId });
-    } catch (err) {
-      toast.error('Download failed', { id: toastId });
+      window.URL.revokeObjectURL(url);
+
+      toast.success(`Downloaded: ${tune.title}`, { id: toastId });
+    } catch (error) {
+      console.error('Download failed:', error);
+      if (error.response?.status === 401) {
+        toast.error('Please login again to download.', { id: toastId });
+      // Optionally, manually redirect after a delay
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 2000);
+    } else {
+     toast.error('Download failed. Please try again.', { id: toastId });
+    }
     }
   };
+
+  // const handleDownloadTune = async (tune) => {
+  //   const toastId = toast.loading(`Preparing ${tune.title}...`);
+  //   try {
+  //     const blob = await controller.downloadTune?.(tune.id) || await fetchDownload(tune.id);
+  //     const url = URL.createObjectURL(blob);
+  //     const link = document.createElement('a');
+  //     link.href = url;
+  //     link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //     URL.revokeObjectURL(url);
+  //     toast.success(`Downloaded ${tune.title}`, { id: toastId });
+  //   } catch (err) {
+  //     toast.error('Download failed', { id: toastId });
+  //   }
+  // };
 
   // Helper to fetch blob if controller lacks downloadTune
   const fetchDownload = async (id) => {
