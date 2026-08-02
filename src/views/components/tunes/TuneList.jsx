@@ -369,6 +369,7 @@ const TuneList = ({ controller }) => {
                     onUpdateRating={(rating) => handleUpdateRating(tune.id, rating)}
                     isSelected={selectedIds.includes(tune.id)}
                     onSelect={() => toggleSelect(tune.id)}
+                    controller={controller}
                   />
                 </Col>
               ))}

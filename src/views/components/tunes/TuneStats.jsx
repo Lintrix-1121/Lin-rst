@@ -1,5 +1,6 @@
+// components/tunes/TuneStats.jsx
 import React, { useState, useEffect } from 'react';
-import { Spinner, Alert, Row, Col, Card, Badge } from 'react-bootstrap';
+import { Spinner, Alert, Row, Col, Card } from 'react-bootstrap';
 
 const TuneStats = ({ tuneId, controller }) => {
   const [stats, setStats] = useState(null);
@@ -10,6 +11,13 @@ const TuneStats = ({ tuneId, controller }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Guard against missing controller
+    if (!controller) {
+      setError('Controller not available');
+      setLoading(false);
+      return;
+    }
+
     const loadStats = async () => {
       try {
         setLoading(true);
@@ -24,7 +32,7 @@ const TuneStats = ({ tuneId, controller }) => {
         setRepeatRate(rr);
         setPlaylistAdds(pa);
       } catch (err) {
-        setError(err.message);
+        setError(err.message || 'Failed to load stats');
       } finally {
         setLoading(false);
       }
@@ -42,9 +50,11 @@ const TuneStats = ({ tuneId, controller }) => {
           <Card className="bg-light">
             <Card.Body>
               <h6>Playback Stats</h6>
-              <div><strong>Total Plays:</strong> {stats?.total_plays || 0}</div>
-              <div><strong>Total Skips:</strong> {stats?.total_skips || 0}</div>
+              <div><strong>Total Plays:</strong> {stats?.play_count || stats?.total_plays || 0}</div>
+              <div><strong>Total Skips:</strong> {stats?.skip_count || stats?.total_skips || 0}</div>
               <div><strong>Last Played:</strong> {stats?.last_played ? new Date(stats.last_played).toLocaleString() : 'Never'}</div>
+              <div><strong>Rating:</strong> {stats?.rating || 0}</div>
+              <div><strong>Favorite:</strong> {stats?.favorite ? 'Yes' : 'No'}</div>
             </Card.Body>
           </Card>
         </Col>
@@ -53,24 +63,14 @@ const TuneStats = ({ tuneId, controller }) => {
             <Card.Body>
               <h6>Engagement</h6>
               <div><strong>Repeat Rate:</strong> {repeatRate?.repeat_rate || 0}%</div>
-              <div><strong>Playlist Adds:</strong> {playlistAdds || 0}</div>
-              <div><strong>Favorite:</strong> {stats?.favorite ? 'Yes' : 'No'}</div>
+              <div><strong>Playlist Adds:</strong> {playlistAdds?.playlist_add_count || 0}</div>
+              <div><strong>Monthly Streams (this month):</strong> {monthly?.monthly_streams || 0}</div>
+              <div><strong>Total Streams (all time):</strong> {monthly?.total_streams || stats?.play_count || 0}</div>
+              <div><strong>Period:</strong> {monthly?.period || 'N/A'}</div>
             </Card.Body>
           </Card>
         </Col>
       </Row>
-      {monthly?.streams && (
-        <div className="mt-3">
-          <h6>Monthly Streams</h6>
-          <div className="d-flex flex-wrap gap-2">
-            {monthly.streams.map((m, i) => (
-              <Badge key={i} bg="info" className="p-2">
-                {m.month}: {m.count}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
