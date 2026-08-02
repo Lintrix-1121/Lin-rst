@@ -17,6 +17,9 @@ const TuneManagerPage = () => {
     try {
       setLoading(true);
       setError(null);
+      //Load tunes to populate model's internal array
+      await controller.loadTunes({ limit: 1000 });
+      //then fetch statistics using server or falls back to local data
       const statsData = await controller.getTuneStatistics();
       setStats(statsData);
     } catch (err) {
@@ -25,7 +28,7 @@ const TuneManagerPage = () => {
       setLoading(false);
     }
   };
-
+  
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
