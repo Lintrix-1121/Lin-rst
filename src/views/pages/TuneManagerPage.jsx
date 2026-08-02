@@ -73,7 +73,7 @@ const TuneManagerPage = () => {
           <Card className="text-center shadow-sm h-100">
             <Card.Body>
               <h6 className="text-muted">Total Plays</h6>
-              <h3 className="text-success">{s.total_plays || 0}</h3>
+              <h3 className="text-success">{s.play_count || 0}</h3>
             </Card.Body>
           </Card>
         </Col>
@@ -81,7 +81,7 @@ const TuneManagerPage = () => {
           <Card className="text-center shadow-sm h-100">
             <Card.Body>
               <h6 className="text-muted">Favorites</h6>
-              <h3 className="text-warning">{s.favorite_tunes || 0}</h3>
+              <h3 className="text-warning">{s.favorite || 0}</h3>
             </Card.Body>
           </Card>
         </Col>
@@ -158,3 +158,4 @@ const TuneManagerPage = () => {
 };
 
 export default TuneManagerPage;
+
