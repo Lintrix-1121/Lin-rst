@@ -420,11 +420,14 @@ class TuneModel {
     }
   }
 
-  // File operations
   async downloadTune(id) {
     try {
       const response = await tuneAPI.downloadBlob(id);
-      return response.data || response;
+      // Axios returns the blob in response.data
+      if (response.data instanceof Blob) {
+        return response.data;
+      }
+      throw new Error('Unexpected response type');
     } catch (error) {
       throw new Error(`Failed to download tune: ${error.message}`);
     }

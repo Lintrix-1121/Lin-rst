@@ -165,15 +165,11 @@ const TuneList = ({ controller, onTunesLoaded }) => {
   };
 
 
-  const handleDownloadTune = async (tune) => {
+    const handleDownloadTune = async (tune) => {
     const toastId = toast.loading(`Preparing ${tune.title}...`);
     try {
-      const response = await tuneAPI.downloadBlob(tune.id);
-      // response.data should be a Blob
-      if (!(response.data instanceof Blob)) {
-        throw new Error('Unexpected response type');
-      }
-      const url = URL.createObjectURL(response.data);
+      const blob = await controller.downloadTune(tune.id); // assumes controller has this method
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
@@ -183,32 +179,9 @@ const TuneList = ({ controller, onTunesLoaded }) => {
       setTimeout(() => URL.revokeObjectURL(url), 5000);
       toast.success(`Downloaded ${tune.title}`, { id: toastId });
     } catch (err) {
-      console.error('Download error:', err);
-      // If the server returned JSON error, it will be in response.data
-      if (err.response && err.response.data) {
-        toast.error(err.response.data.message || 'Download failed', { id: toastId });
-      } else {
-        toast.error('Download failed. Please try again.', { id: toastId });
-      }
+      toast.error('Download failed', { id: toastId });
     }
   };
-  // const handleDownloadTune = async (tune) => {
-  //   const toastId = toast.loading(`Preparing ${tune.title}...`);
-  //   try {
-  //     const blob = await controller.downloadTune?.(tune.id) || await fetchDownload(tune.id);
-  //     const url = URL.createObjectURL(blob);
-  //     const link = document.createElement('a');
-  //     link.href = url;
-  //     link.download = `${tune.artist} - ${tune.title}.${tune.file_format || 'mp3'}`;
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //     URL.revokeObjectURL(url);
-  //     toast.success(`Downloaded ${tune.title}`, { id: toastId });
-  //   } catch (err) {
-  //     toast.error('Download failed', { id: toastId });
-  //   }
-  // };
 
   // Helper to fetch blob if controller lacks downloadTune
   const fetchDownload = async (id) => {
