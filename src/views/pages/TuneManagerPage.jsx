@@ -8,26 +8,93 @@ const TuneManagerPage = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [allTunes, setAllTunes] = useState([]);
 
   useEffect(() => {
     loadStats();
+  }, []);
+
+
+  const computeStats = useCallback((tunes) => {
+    if (!Array.isArray(tunes) || tunes.length === 0) {
+      return {
+        total_tunes: 0,
+        total_plays: 0,
+        favorite_tunes: 0,
+        average_rating: 0,
+        total_storage_bytes: 0,
+        total_storage_gb: 0,
+        average_duration: 0,
+        format_breakdown: [],
+      };
+    }
+
+    const totalPlays = tunes.reduce((sum, t) => sum + (t.play_count || 0), 0);
+    const totalStorage = tunes.reduce((sum, t) => sum + (t.file_size || 0), 0);
+    const totalDuration = tunes.reduce((sum, t) => sum + (t.duration || 0), 0);
+    const favoriteTunes = tunes.filter(t => t.favorite).length;
+    const totalTunes = tunes.length;
+    const averageRating = totalTunes > 0
+      ? (tunes.reduce((sum, t) => sum + (t.rating || 0), 0) / totalTunes).toFixed(1)
+      : 0;
+    const averageDuration = totalTunes > 0
+      ? (totalDuration / totalTunes).toFixed(2)
+      : 0;
+
+    // Format breakdown
+    const formatMap = {};
+    tunes.forEach(t => {
+      const fmt = t.file_format || 'unknown';
+      if (!formatMap[fmt]) formatMap[fmt] = { format: fmt, count: 0, total_size: 0 };
+      formatMap[fmt].count++;
+      formatMap[fmt].total_size += (t.file_size || 0);
+    });
+    const formatBreakdown = Object.values(formatMap).map(f => ({
+      ...f,
+      total_size_gb: (f.total_size / (1024 * 1024 * 1024)).toFixed(3)
+    }));
+
+    return {
+      total_tunes: totalTunes,
+      total_plays: totalPlays,
+      favorite_tunes: favoriteTunes,
+      average_rating: averageRating,
+      total_storage_bytes: totalStorage,
+      total_storage_gb: (totalStorage / (1024 * 1024 * 1024)).toFixed(2),
+      average_duration: averageDuration,
+      format_breakdown: formatBreakdown,
+    };
   }, []);
 
   const loadStats = async () => {
     try {
       setLoading(true);
       setError(null);
+
+      const tunes = await controller.loadTunes({ limit: 1000 });
+      setAllTunes(tunes);
+      setStats({ statistics: computeStats(tunes), format_breakdown: computeStats(tunes).format_breakdown });
       //Load tunes to populate model's internal array
-      await controller.loadTunes({ limit: 1000 });
+      //await controller.loadTunes({ limit: 1000 });
       //then fetch statistics using server or falls back to local data
-      const statsData = await controller.getTuneStatistics();
-      setStats(statsData);
+      //const statsData = await controller.getTuneStatistics();
+      //setStats(statsData);
     } catch (err) {
       setError(err.message || 'Failed to load statistics');
     } finally {
       setLoading(false);
     }
   };
+
+   const handleTunesLoaded = useCallback((tunes) => {
+    setAllTunes(tunes);
+    const computed = computeStats(tunes);
+    setStats({ statistics: computed, format_breakdown: computed.format_breakdown });
+  }, [computeStats]);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
 
   if (loading) {
     return (
@@ -76,7 +143,7 @@ const TuneManagerPage = () => {
           <Card className="text-center shadow-sm h-100">
             <Card.Body>
               <h6 className="text-muted">Total Plays</h6>
-              <h3 className="text-success">{s.totalPlays || s.total_streams || 0}</h3>
+              <h3 className="text-success">{s.total_plays || s.total_streams || 0}</h3>
             </Card.Body>
           </Card>
         </Col>
