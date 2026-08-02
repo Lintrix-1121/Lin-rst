@@ -8,7 +8,7 @@ import TuneCard from './TuneCard';
 import TuneEditor from './TuneEditor';
 import AudioPlayer from './AudioPlayer';
 
-const TuneList = ({ controller }) => {
+const TuneList = ({ controller, onTunesLoaded }) => {
   // State
   const [tunes, setTunes] = useState([]);
   const [filteredTunes, setFilteredTunes] = useState([]);

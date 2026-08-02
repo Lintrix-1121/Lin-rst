@@ -219,7 +219,10 @@ const TuneManagerPage = () => {
       <Row>
         <Col>
           <Card className="shadow-sm">
-            <TuneList controller={controller} />
+            <TuneList 
+              controller={controller} 
+              onTunesLoaded={handleTunesLoaded}
+            />
           </Card>
         </Col>
       </Row>
