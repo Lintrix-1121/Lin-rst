@@ -28,7 +28,7 @@ const TuneManagerPage = () => {
       setLoading(false);
     }
   };
-  
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
@@ -76,7 +76,7 @@ const TuneManagerPage = () => {
           <Card className="text-center shadow-sm h-100">
             <Card.Body>
               <h6 className="text-muted">Total Plays</h6>
-              <h3 className="text-success">{s.total_plays || s.total_streams || 0}</h3>
+              <h3 className="text-success">{s.totalPlays || s.total_streams || 0}</h3>
             </Card.Body>
           </Card>
         </Col>
