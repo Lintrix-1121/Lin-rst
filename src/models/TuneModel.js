@@ -485,7 +485,7 @@ class TuneModel {
   // File operations
   async downloadTune(id) {
     try {
-      const response = await tuneAPI.download(id);
+      const response = await tuneAPI.downloadBlob(id);
       return response.data || response;
     } catch (error) {
       throw new Error(`Failed to download tune: ${error.message}`);
