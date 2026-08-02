@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Card, Row, Col, Spinner, Alert, Badge, Button } from 'react-bootstrap';
 import TuneList from '../components/tunes/TuneList';
 import TuneController from '../../controllers/TuneController';
 
@@ -73,7 +73,7 @@ const TuneManagerPage = () => {
           <Card className="text-center shadow-sm h-100">
             <Card.Body>
               <h6 className="text-muted">Total Plays</h6>
-              <h3 className="text-success">{s.play_count || 0}</h3>
+              <h3 className="text-success">{s.total_plays || s.total_streams || 0}</h3>
             </Card.Body>
           </Card>
         </Col>
@@ -81,7 +81,7 @@ const TuneManagerPage = () => {
           <Card className="text-center shadow-sm h-100">
             <Card.Body>
               <h6 className="text-muted">Favorites</h6>
-              <h3 className="text-warning">{s.favorite || 0}</h3>
+              <h3 className="text-warning">{s.favorite_tunes || 0}</h3>
             </Card.Body>
           </Card>
         </Col>
@@ -158,4 +158,3 @@ const TuneManagerPage = () => {
 };
 
 export default TuneManagerPage;
-

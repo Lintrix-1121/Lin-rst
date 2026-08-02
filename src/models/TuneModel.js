@@ -341,10 +341,9 @@ class TuneModel {
       };
     }
   }
-
+  
   async fetchTuneStatistics(params = {}) {
     try {
-      // Fetch both endpoints in parallel
       const [countResponse, totalStatsResponse] = await Promise.all([
         tuneAPI.getTotalCount(params),
         tuneAPI.getTotalStats()
@@ -353,7 +352,11 @@ class TuneModel {
       const countData = countResponse.data?.data || {};
       const totalStats = totalStatsResponse.data?.data || {};
 
-      // Combine into a single statistics object
+      // Compute favorite count from local tunes if available
+      const favoriteTunes = Array.isArray(this.tunes) 
+        ? this.tunes.filter(t => t.favorite).length 
+        : 0;
+
       const combinedStats = {
         total_count: countData.total_count || 0,
         statistics: {
@@ -362,9 +365,11 @@ class TuneModel {
           total_downloads: totalStats.total_downloads || 0,
           total_storage_bytes: totalStats.total_storage || 0,
           total_storage_gb: ((totalStats.total_storage || 0) / (1024 * 1024 * 1024)).toFixed(2),
-          average_rating: this.getAverageRating(), 
-          favorite_tunes: this.getFavoriteTunes().length,
-          
+          average_rating: this.getAverageRating(), // computed from local tunes
+          average_duration: this.tunes.length 
+            ? (this.tunes.reduce((acc, t) => acc + (t.duration || 0), 0) / this.tunes.length).toFixed(2) 
+            : 0,
+          favorite_tunes: favoriteTunes,
         },
         format_breakdown: countData.format_breakdown || []
       };
@@ -373,7 +378,7 @@ class TuneModel {
       return combinedStats;
     } catch (error) {
       console.warn('Server stats unavailable, using computed local stats:', error.message);
-      // Fallback to compute from local tunes 
+      // Fallback (same as before)
       const totalStorage = this.tunes.reduce((acc, t) => acc + (t.file_size || 0), 0);
       const totalDuration = this.tunes.reduce((acc, t) => acc + (t.duration || 0), 0);
       const favoriteTunes = this.tunes.filter(t => t.favorite).length;
@@ -392,7 +397,7 @@ class TuneModel {
           favorite_tunes: favoriteTunes,
           total_plays: totalPlays,
           average_rating: averageRating,
-          _from_cache: true
+          _from_cache: true,
         },
         format_breakdown: this.getFormatBreakdown()
       };
@@ -400,6 +405,67 @@ class TuneModel {
       return stats;
     }
   }
+
+
+  
+  // async fetchTuneStatistics(params = {}) {
+  //   try {
+  //     // Fetch both endpoints in parallel
+  //     const [countResponse, totalStatsResponse] = await Promise.all([
+  //       tuneAPI.getTotalCount(params),
+  //       tuneAPI.getTotalStats()
+  //     ]);
+
+  //     const countData = countResponse.data?.data || {};
+  //     const totalStats = totalStatsResponse.data?.data || {};
+
+  //     // Combine into a single statistics object
+  //     const combinedStats = {
+  //       total_count: countData.total_count || 0,
+  //       statistics: {
+  //         total_tunes: countData.total_count || 0,
+  //         total_plays: totalStats.total_streams || 0,
+  //         total_downloads: totalStats.total_downloads || 0,
+  //         total_storage_bytes: totalStats.total_storage || 0,
+  //         total_storage_gb: ((totalStats.total_storage || 0) / (1024 * 1024 * 1024)).toFixed(2),
+  //         average_rating: this.getAverageRating(), 
+  //         favorite_tunes: this.getFavoriteTunes().length,
+          
+  //       },
+  //       format_breakdown: countData.format_breakdown || []
+  //     };
+
+  //     this.statistics = combinedStats;
+  //     return combinedStats;
+  //   } catch (error) {
+  //     console.warn('Server stats unavailable, using computed local stats:', error.message);
+  //     // Fallback to compute from local tunes 
+  //     const totalStorage = this.tunes.reduce((acc, t) => acc + (t.file_size || 0), 0);
+  //     const totalDuration = this.tunes.reduce((acc, t) => acc + (t.duration || 0), 0);
+  //     const favoriteTunes = this.tunes.filter(t => t.favorite).length;
+  //     const totalPlays = this.tunes.reduce((acc, t) => acc + (t.play_count || 0), 0);
+  //     const averageRating = this.tunes.length
+  //       ? (this.tunes.reduce((acc, t) => acc + (t.rating || 0), 0) / this.tunes.length).toFixed(1)
+  //       : 0;
+
+  //     const stats = {
+  //       total_count: this.tunes.length,
+  //       statistics: {
+  //         total_tunes: this.tunes.length,
+  //         total_storage_bytes: totalStorage,
+  //         total_storage_gb: (totalStorage / (1024 * 1024 * 1024)).toFixed(2),
+  //         average_duration: this.tunes.length ? (totalDuration / this.tunes.length).toFixed(2) : 0,
+  //         favorite_tunes: favoriteTunes,
+  //         total_plays: totalPlays,
+  //         average_rating: averageRating,
+  //         _from_cache: true
+  //       },
+  //       format_breakdown: this.getFormatBreakdown()
+  //     };
+  //     this.statistics = stats;
+  //     return stats;
+  //   }
+  // }
 
 
   async batchUpdateTunes(updates) {
