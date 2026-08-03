@@ -23,7 +23,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // 🔥 Reuse the same computeStats logic from TuneManagerPage
+  //computeStats logic from TuneManagerPage
   const computeStats = useCallback((tunes) => {
     if (!Array.isArray(tunes) || tunes.length === 0) {
       return {
@@ -84,12 +84,12 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
 
-      // 🔥 Load the full tune list – this is the single source of truth
+      //Load the full tune list the single source of truth
       const tunes = await tuneController.loadTunes({ limit: 1000 });
       const computed = computeStats(tunes);
 
-      // 🔥 For monthly & avg daily streams, we still rely on server endpoints
-      // (these are not derivable from the tune list alone)
+      //For monthly & avg daily streams still rely on server endpoints
+      // these are not derivable from the tune list alone
       let monthlyStreams = 0;
       let avgDailyStreams = 0;
       try {
@@ -107,7 +107,7 @@ const Dashboard = () => {
         console.warn('Failed to fetch avg daily streams:', e);
       }
 
-      // 🔥 Compute recent uploads (last 7 days)
+      //Compute recent uploads (last 7 days)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       const recentUploads = tunes.filter(t => {
@@ -115,7 +115,7 @@ const Dashboard = () => {
         return date >= sevenDaysAgo;
       }).length;
 
-      // 🔥 Top 5 most played tunes (already computed from the list)
+      //Top 5 most played tunes computed from the list
       const topTracks = [...tunes]
         .sort((a, b) => (b.play_count || 0) - (a.play_count || 0))
         .slice(0, 5);
@@ -142,7 +142,7 @@ const Dashboard = () => {
     }
   }, [tuneController, computeStats]);
 
-  // Quick action card (unchanged)
+  // Quick action card 
   const QuickActionCard = ({ title, description, icon, action, buttonText, variant = 'primary' }) => (
     <Card className="h-100 quick-action-card">
       <Card.Body className="d-flex flex-column">
@@ -158,8 +158,7 @@ const Dashboard = () => {
     </Card>
   );
 
-  // Loading / Error states (unchanged)
-
+  // Loading / Error states 
   if (loading) {
     return (
       <div className="section-container">
