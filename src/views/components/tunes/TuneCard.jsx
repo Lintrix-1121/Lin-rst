@@ -45,6 +45,13 @@ const TuneCard = ({
     return <Badge bg="secondary">Standard</Badge>;
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'N/A';
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
   return (
     <>
       <Card className={`h-100 tune-card ${isSelected ? 'border-primary border-2' : ''}`}>
@@ -175,7 +182,7 @@ const TuneCard = ({
             </div>
             <div className="d-flex justify-content-between mt-1 small text-muted">
               <span><i className="bi bi-file-earmark me-1" /> {formatFileSize(tune.file_size)}</span>
-              <span>Added: {new Date(tune.created_at).toLocaleDateString()}</span>
+              <span>Added: {formatDate(tune.created_at || tune.createdAt)}</span>
             </div>
           </div>
         </Card.Body>
