@@ -1,14 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Row, Col, Card, Button, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import AnalyticsController from '../../controllers/AnalyticsController';
 import TuneController from '../../controllers/TuneController';
 
 const Dashboard = () => {
-  const [analyticsController] = useState(() => new AnalyticsController());
   const [tuneController] = useState(() => new TuneController());
-  const [dashboardData, setDashboardData] = useState(null);
-  const [quickStats, setQuickStats] = useState(null);
+  const [dashboardData, setDashboardData] = useState({
+    stats: {
+      totalTracks: 0,
+      storageUsed: 0,
+      totalPlays: 0,
+      downloads: 0,
+      monthlyStreams: 0,
+      avgDailyStreams: 0,
+      recentUploads: 0,
+    },
+    topTracks: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -17,90 +25,61 @@ const Dashboard = () => {
     loadDashboardData();
   }, []);
 
-  
   const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await analyticsController.loadDashboardData();
-      const stats = data?.stats || {};
-      const topTracks = data?.topTracks || [];
+      setError(null);
 
-      setQuickStats({
-        totalTracks: stats.totalTracks || 0,
-        storageUsed: parseFloat((stats.totalStorage / (1024 * 1024 * 1024)).toFixed(1)),
-        totalPlays: stats.totalStreams || 0,
-        totalDownloads: stats.totalDownloads || 0,
-        monthlyStreams: stats.monthlyStreams || 0,
-        avgDailyStreams: stats.avgDailyStreams || 0,
-      });
+      // Fetch all needed data in parallel
+      const [
+        totalStats,
+        monthlyStats,
+        avgStats,
+        topTracks,
+        recentTunes
+      ] = await Promise.all([
+        tuneController.getTotalStats(),
+        tuneController.getOverallMonthlyStreams(),
+        tuneController.getAverageStreams({ days: 30 }),
+        tuneController.getMostPlayed({ limit: 5 }),
+        tuneController.getRecentTunes({ limit: 10 })
+      ]);
+
+      // Compute recent uploads (within last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentUploads = Array.isArray(recentTunes)
+        ? recentTunes.filter(tune => new Date(tune.createdAt || tune.created_at) >= sevenDaysAgo).length
+        : 0;
+
+      // Storage used in GB
+      const storageGB = totalStats.total_storage
+        ? parseFloat((totalStats.total_storage / (1024 * 1024 * 1024)).toFixed(1))
+        : 0;
 
       setDashboardData({
         stats: {
-          totalPlays: stats.totalStreams || 0,
-          downloads: stats.totalDownloads || 0,
-          monthlyStreams: stats.monthlyStreams || 0,
-          avgDailyStreams: stats.avgDailyStreams || 0,
+          totalTracks: totalStats.total_tracks || 0,
+          storageUsed: storageGB,
+          totalPlays: totalStats.total_streams || 0,
+          downloads: totalStats.total_downloads || 0,
+          monthlyStreams: monthlyStats?.total_streams || 0,
+          avgDailyStreams: avgStats?.average_streams_per_day
+            ? parseFloat(avgStats.average_streams_per_day).toFixed(1)
+            : 0,
+          recentUploads: recentUploads,
         },
-        topTracks
+        topTracks: Array.isArray(topTracks) ? topTracks : [],
       });
     } catch (err) {
-      // handle error
+      console.error('Dashboard load error:', err);
+      setError(err.message || 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
-  }, [analyticsController]);
+  }, [tuneController]);
 
-
-//   const loadDashboardData = useCallback(async () => {
-//   try {
-//     setLoading(true);
-//     setError(null);
-//     console.log('🔄 Starting dashboard data load...');
-
-//     const [analyticsData, tunes, monthlyStats, avgStats] = await Promise.all([
-//       analyticsController.loadDashboardData(),
-//       tuneController.loadTunes({ limit: 1000 }),
-//       tuneController.getOverallMonthlyStreams(),
-//       tuneController.getAverageStreams
-//     ]);
-
-//     console.log('📊 Analytics data received:', analyticsData);
-//     console.log('🎵 Tunes data received:', tunes);
-//     console.log('🎵 Number of tunes:', Array.isArray(tunes) ? tunes.length : 'Not an array');
-
-//     setDashboardData({
-//       ...analyticsData, monthly: monthlyStats, average: avgStats
-//     });
-    
-//     // Calculate quick stats
-//     const tunesArray = Array.isArray(tunes) ? tunes : [];
-//     const totalStorage = tunesArray.reduce((acc, tune) => acc + (tune.file_size || 0), 0);
-    
-//     setQuickStats({
-//       totalTracks: tunesArray.length,
-//       recentUploads: tunesArray.slice(0, 5).length,
-//       storageUsed: parseFloat((totalStorage / (1024 * 1024 * 1024)).toFixed(1))
-//     });
-
-//     console.log('✅ Dashboard data loaded successfully');
-
-//   } catch (err) {
-//     console.error('❌ Failed to load dashboard data:', err);
-//     setError(err.message);
-//     setQuickStats({
-//       totalTracks: 0,
-//       recentUploads: 0,
-//       storageUsed: 0
-//     });
-//     setDashboardData({
-//       stats: { totalPlays: 0, downloads: 0 },
-//       topTracks: []
-//     });
-//   } finally {
-//     setLoading(false);
-//   }
-// }, [analyticsController, tuneController]);
-
+  // Quick action card component
   const QuickActionCard = ({ title, description, icon, action, buttonText, variant = 'primary' }) => (
     <Card className="h-100 quick-action-card">
       <Card.Body className="d-flex flex-column">
@@ -109,35 +88,14 @@ const Dashboard = () => {
         </div>
         <h5>{title}</h5>
         <p className="text-muted flex-grow-1">{description}</p>
-        <Button 
-          variant={variant} 
-          onClick={action}
-          className="mt-auto"
-        >
+        <Button variant={variant} onClick={action} className="mt-auto">
           {buttonText}
         </Button>
       </Card.Body>
     </Card>
   );
 
-  // Safe slice function for top tracks
-  const getTopTracks = () => {
-    if (!dashboardData || !dashboardData.topTracks) return [];
-    
-    if (Array.isArray(dashboardData.topTracks)) {
-      return dashboardData.topTracks.slice(0, 5);
-    }
-    
-    return [];
-  };
-
-  // Safe access to stats
-  const getStats = () => {
-    if (!dashboardData) return { totalPlays: 0, downloads: 0 };
-    
-    return dashboardData.stats || { totalPlays: 0, downloads: 0 };
-  };
-
+  // Loading state
   if (loading) {
     return (
       <div className="section-container">
@@ -149,6 +107,7 @@ const Dashboard = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="section-container">
@@ -164,8 +123,7 @@ const Dashboard = () => {
     );
   }
 
-  const topTracks = getTopTracks();
-  const stats = getStats();
+  const { stats, topTracks } = dashboardData;
 
   return (
     <div className="section-container">
@@ -182,7 +140,7 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Total Tracks</h6>
-                  <h3 className="text-primary">{quickStats?.totalTracks || 0}</h3>
+                  <h3 className="text-primary">{stats.totalTracks}</h3>
                 </div>
                 <i className="bi bi-music-note-list display-6 text-muted"></i>
               </div>
@@ -195,9 +153,7 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Storage Used</h6>
-                  <h3 className="text-info">
-                    {quickStats ? quickStats.storageUsed.toFixed(1) : '0.0'} GB
-                  </h3>
+                  <h3 className="text-info">{stats.storageUsed} GB</h3>
                 </div>
                 <i className="bi bi-hdd display-6 text-muted"></i>
               </div>
@@ -210,7 +166,7 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Total Plays</h6>
-                  <h3 className="text-success">{stats.totalPlays || 0}</h3>
+                  <h3 className="text-success">{stats.totalPlays}</h3>
                 </div>
                 <i className="bi bi-play-circle display-6 text-muted"></i>
               </div>
@@ -223,7 +179,7 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Downloads</h6>
-                  <h3 className="text-warning">{stats.downloads || 0}</h3>
+                  <h3 className="text-warning">{stats.downloads}</h3>
                 </div>
                 <i className="bi bi-download display-6 text-muted"></i>
               </div>
@@ -236,7 +192,7 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Monthly Streams</h6>
-                  <h3 className="text-primary">{dashboardData?.monthly?.total_streams || 0}</h3>
+                  <h3 className="text-primary">{stats.monthlyStreams}</h3>
                 </div>
                 <i className="bi bi-calendar3 display-6 text-muted"></i>
               </div>
@@ -249,7 +205,7 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Avg Daily Streams</h6>
-                  <h3 className="text-info">{dashboardData?.averages?.average_streams_per_day || 0}</h3>
+                  <h3 className="text-info">{stats.avgDailyStreams}</h3>
                 </div>
                 <i className="bi bi-graph-up display-6 text-muted"></i>
               </div>
@@ -298,11 +254,11 @@ const Dashboard = () => {
           <Card>
             <Card.Body>
               <h6>Recent Uploads</h6>
-              {quickStats?.recentUploads > 0 ? (
+              {stats.recentUploads > 0 ? (
                 <div className="text-center py-3">
                   <i className="bi bi-music-note-list display-4 text-primary"></i>
                   <p className="mt-2">
-                    <strong>{quickStats.recentUploads}</strong> new tracks uploaded recently
+                    <strong>{stats.recentUploads}</strong> new tracks uploaded in the last 7 days
                   </p>
                 </div>
               ) : (
@@ -322,10 +278,10 @@ const Dashboard = () => {
                 topTracks.map((track, index) => (
                   <div key={index} className="d-flex justify-content-between align-items-center py-2 border-bottom">
                     <div>
-                      <div className="fw-bold">{track.name || track.title || 'Unknown Track'}</div>
+                      <div className="fw-bold">{track.title || track.name || 'Unknown'}</div>
                       <small className="text-muted">{track.artist || 'Unknown Artist'}</small>
                     </div>
-                    <span className="badge bg-primary">{track.plays || track.play_count || 0}</span>
+                    <span className="badge bg-primary">{track.play_count || track.plays || 0}</span>
                   </div>
                 ))
               ) : (
@@ -343,5 +299,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-
