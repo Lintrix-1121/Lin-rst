@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Row, Col, Card, Button, Spinner } from 'react-bootstrap';
+import { Row, Col, Card, Button, Spinner, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import TuneController from '../../controllers/TuneController';
 
