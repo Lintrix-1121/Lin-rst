@@ -164,11 +164,18 @@ const TuneList = ({ controller, onTunesLoaded }) => {
     }
   };
 
-
-    const handleDownloadTune = async (tune) => {
+  const handleDownloadTune = async (tune) => {
     const toastId = toast.loading(`Preparing ${tune.title}...`);
     try {
-      const blob = await controller.downloadTune(tune.id); // assumes controller has this method
+      // Use the existing blob download method from tuneAPI
+      const response = await tuneAPI.downloadBlob(tune.id);
+      const blob = response.data; // Axios returns blob in response.data
+
+      // Ensure it's a Blob
+      if (!(blob instanceof Blob)) {
+        throw new Error('Unexpected response format');
+      }
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -177,9 +184,13 @@ const TuneList = ({ controller, onTunesLoaded }) => {
       link.click();
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(url), 5000);
+
       toast.success(`Downloaded ${tune.title}`, { id: toastId });
-    } catch (err) {
-      toast.error('Download failed', { id: toastId });
+    } catch (error) {
+      console.error('Download error:', error);
+      // Show specific error message if available
+      const message = error.response?.data?.message || error.message || 'Download failed';
+      toast.error(message, { id: toastId });
     }
   };
 
