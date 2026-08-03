@@ -10,16 +10,70 @@ const Dashboard = () => {
       totalTracks: 0,
       storageUsed: 0,
       totalPlays: 0,
-      downloads: 0,
+      favorites: 0,
+      avgRating: 0,
       monthlyStreams: 0,
       avgDailyStreams: 0,
       recentUploads: 0,
     },
     topTracks: [],
+    formatBreakdown: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  // 🔥 Reuse the same computeStats logic from TuneManagerPage
+  const computeStats = useCallback((tunes) => {
+    if (!Array.isArray(tunes) || tunes.length === 0) {
+      return {
+        total_tunes: 0,
+        total_plays: 0,
+        favorite_tunes: 0,
+        average_rating: 0,
+        total_storage_bytes: 0,
+        total_storage_gb: 0,
+        average_duration: 0,
+        format_breakdown: [],
+      };
+    }
+
+    const totalPlays = tunes.reduce((sum, t) => sum + (t.play_count || 0), 0);
+    const totalStorage = tunes.reduce((sum, t) => sum + (t.file_size || 0), 0);
+    const totalDuration = tunes.reduce((sum, t) => sum + (t.duration || 0), 0);
+    const favoriteTunes = tunes.filter(t => t.favorite).length;
+    const totalTunes = tunes.length;
+    const averageRating = totalTunes > 0
+      ? (tunes.reduce((sum, t) => sum + (t.rating || 0), 0) / totalTunes).toFixed(1)
+      : 0;
+    const averageDuration = totalTunes > 0
+      ? (totalDuration / totalTunes).toFixed(2)
+      : 0;
+
+    // Format breakdown
+    const formatMap = {};
+    tunes.forEach(t => {
+      const fmt = t.file_format || 'unknown';
+      if (!formatMap[fmt]) formatMap[fmt] = { format: fmt, count: 0, total_size: 0 };
+      formatMap[fmt].count++;
+      formatMap[fmt].total_size += (t.file_size || 0);
+    });
+    const formatBreakdown = Object.values(formatMap).map(f => ({
+      ...f,
+      total_size_gb: (f.total_size / (1024 * 1024 * 1024)).toFixed(3)
+    }));
+
+    return {
+      total_tunes: totalTunes,
+      total_plays: totalPlays,
+      favorite_tunes: favoriteTunes,
+      average_rating: averageRating,
+      total_storage_bytes: totalStorage,
+      total_storage_gb: (totalStorage / (1024 * 1024 * 1024)).toFixed(2),
+      average_duration: averageDuration,
+      format_breakdown: formatBreakdown,
+    };
+  }, []);
 
   useEffect(() => {
     loadDashboardData();
@@ -30,46 +84,55 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch all needed data in parallel
-      const [
-        totalStats,
-        monthlyStats,
-        avgStats,
-        topTracks,
-        recentTunes
-      ] = await Promise.all([
-        tuneController.getTotalStats(),
-        tuneController.getOverallMonthlyStreams(),
-        tuneController.getAverageStreams({ days: 30 }),
-        tuneController.getMostPlayed({ limit: 5 }),
-        tuneController.getRecentTunes({ limit: 10 })
-      ]);
+      // 🔥 Load the full tune list – this is the single source of truth
+      const tunes = await tuneController.loadTunes({ limit: 1000 });
+      const computed = computeStats(tunes);
 
-      // Compute recent uploads (within last 7 days)
+      // 🔥 For monthly & avg daily streams, we still rely on server endpoints
+      // (these are not derivable from the tune list alone)
+      let monthlyStreams = 0;
+      let avgDailyStreams = 0;
+      try {
+        const monthlyData = await tuneController.getOverallMonthlyStreams();
+        monthlyStreams = monthlyData?.total_streams || 0;
+      } catch (e) {
+        console.warn('Failed to fetch monthly streams:', e);
+      }
+      try {
+        const avgData = await tuneController.getAverageStreams({ days: 30 });
+        avgDailyStreams = avgData?.average_streams_per_day
+          ? parseFloat(avgData.average_streams_per_day).toFixed(1)
+          : 0;
+      } catch (e) {
+        console.warn('Failed to fetch avg daily streams:', e);
+      }
+
+      // 🔥 Compute recent uploads (last 7 days)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const recentUploads = Array.isArray(recentTunes)
-        ? recentTunes.filter(tune => new Date(tune.createdAt || tune.created_at) >= sevenDaysAgo).length
-        : 0;
+      const recentUploads = tunes.filter(t => {
+        const date = new Date(t.createdAt || t.created_at);
+        return date >= sevenDaysAgo;
+      }).length;
 
-      // Storage used in GB
-      const storageGB = totalStats.total_storage
-        ? parseFloat((totalStats.total_storage / (1024 * 1024 * 1024)).toFixed(1))
-        : 0;
+      // 🔥 Top 5 most played tunes (already computed from the list)
+      const topTracks = [...tunes]
+        .sort((a, b) => (b.play_count || 0) - (a.play_count || 0))
+        .slice(0, 5);
 
       setDashboardData({
         stats: {
-          totalTracks: totalStats.total_tracks || 0,
-          storageUsed: storageGB,
-          totalPlays: totalStats.total_streams || 0,
-          downloads: totalStats.total_downloads || 0,
-          monthlyStreams: monthlyStats?.total_streams || 0,
-          avgDailyStreams: avgStats?.average_streams_per_day
-            ? parseFloat(avgStats.average_streams_per_day).toFixed(1)
-            : 0,
-          recentUploads: recentUploads,
+          totalTracks: computed.total_tunes,
+          storageUsed: parseFloat(computed.total_storage_gb),
+          totalPlays: computed.total_plays,
+          favorites: computed.favorite_tunes,
+          avgRating: computed.average_rating,
+          monthlyStreams,
+          avgDailyStreams,
+          recentUploads,
         },
-        topTracks: Array.isArray(topTracks) ? topTracks : [],
+        topTracks,
+        formatBreakdown: computed.format_breakdown,
       });
     } catch (err) {
       console.error('Dashboard load error:', err);
@@ -77,9 +140,9 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  }, [tuneController]);
+  }, [tuneController, computeStats]);
 
-  // Quick action card component
+  // Quick action card (unchanged)
   const QuickActionCard = ({ title, description, icon, action, buttonText, variant = 'primary' }) => (
     <Card className="h-100 quick-action-card">
       <Card.Body className="d-flex flex-column">
@@ -95,7 +158,8 @@ const Dashboard = () => {
     </Card>
   );
 
-  // Loading state
+  // Loading / Error states (unchanged)
+
   if (loading) {
     return (
       <div className="section-container">
@@ -107,7 +171,6 @@ const Dashboard = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="section-container">
@@ -123,7 +186,7 @@ const Dashboard = () => {
     );
   }
 
-  const { stats, topTracks } = dashboardData;
+  const { stats, topTracks, formatBreakdown } = dashboardData;
 
   return (
     <div className="section-container">
@@ -153,7 +216,7 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Storage Used</h6>
-                  <h3 className="text-info">{stats.storageUsed} GB</h3>
+                  <h3 className="text-info">{stats.storageUsed.toFixed(1)} GB</h3>
                 </div>
                 <i className="bi bi-hdd display-6 text-muted"></i>
               </div>
@@ -178,10 +241,23 @@ const Dashboard = () => {
             <Card.Body>
               <div className="d-flex justify-content-between">
                 <div>
-                  <h6 className="card-title">Downloads</h6>
-                  <h3 className="text-warning">{stats.downloads}</h3>
+                  <h6 className="card-title">Favorites</h6>
+                  <h3 className="text-warning">{stats.favorites}</h3>
                 </div>
-                <i className="bi bi-download display-6 text-muted"></i>
+                <i className="bi bi-heart display-6 text-muted"></i>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={3} md={6} className="mb-3">
+          <Card className="stat-card">
+            <Card.Body>
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Avg Rating</h6>
+                  <h3 className="text-primary">{stats.avgRating}</h3>
+                </div>
+                <i className="bi bi-star display-6 text-muted"></i>
               </div>
             </Card.Body>
           </Card>
@@ -192,7 +268,7 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Monthly Streams</h6>
-                  <h3 className="text-primary">{stats.monthlyStreams}</h3>
+                  <h3 className="text-info">{stats.monthlyStreams}</h3>
                 </div>
                 <i className="bi bi-calendar3 display-6 text-muted"></i>
               </div>
@@ -205,9 +281,22 @@ const Dashboard = () => {
               <div className="d-flex justify-content-between">
                 <div>
                   <h6 className="card-title">Avg Daily Streams</h6>
-                  <h3 className="text-info">{stats.avgDailyStreams}</h3>
+                  <h3 className="text-success">{stats.avgDailyStreams}</h3>
                 </div>
                 <i className="bi bi-graph-up display-6 text-muted"></i>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col lg={3} md={6} className="mb-3">
+          <Card className="stat-card">
+            <Card.Body>
+              <div className="d-flex justify-content-between">
+                <div>
+                  <h6 className="card-title">Recent Uploads</h6>
+                  <h3 className="text-warning">{stats.recentUploads}</h3>
+                </div>
+                <i className="bi bi-clock-history display-6 text-muted"></i>
               </div>
             </Card.Body>
           </Card>
@@ -248,23 +337,24 @@ const Dashboard = () => {
         </Col>
       </Row>
 
-      {/* Recent Activity */}
+      {/* Format Breakdown & Top Tracks */}
       <Row>
         <Col lg={6}>
-          <Card>
+          <Card className="h-100">
             <Card.Body>
-              <h6>Recent Uploads</h6>
-              {stats.recentUploads > 0 ? (
-                <div className="text-center py-3">
-                  <i className="bi bi-music-note-list display-4 text-primary"></i>
-                  <p className="mt-2">
-                    <strong>{stats.recentUploads}</strong> new tracks uploaded in the last 7 days
-                  </p>
+              <h6>Format Breakdown</h6>
+              {formatBreakdown && formatBreakdown.length > 0 ? (
+                <div className="d-flex flex-wrap gap-2 mt-2">
+                  {formatBreakdown.map((f) => (
+                    <Badge key={f.format} bg="light" text="dark" className="p-2 border">
+                      {f.format.toUpperCase()}: {f.count} ({f.total_size_gb} GB)
+                    </Badge>
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-3 text-muted">
-                  <i className="bi bi-clock-history display-4"></i>
-                  <p>No recent uploads</p>
+                  <i className="bi bi-file-earmark display-4"></i>
+                  <p>No format data available</p>
                 </div>
               )}
             </Card.Body>
@@ -273,21 +363,21 @@ const Dashboard = () => {
         <Col lg={6}>
           <Card>
             <Card.Body>
-              <h6>Top Tracks</h6>
-              {topTracks.length > 0 ? (
+              <h6>Top 5 Tracks</h6>
+              {topTracks && topTracks.length > 0 ? (
                 topTracks.map((track, index) => (
                   <div key={index} className="d-flex justify-content-between align-items-center py-2 border-bottom">
                     <div>
-                      <div className="fw-bold">{track.title || track.name || 'Unknown'}</div>
+                      <div className="fw-bold">{track.title || 'Unknown'}</div>
                       <small className="text-muted">{track.artist || 'Unknown Artist'}</small>
                     </div>
-                    <span className="badge bg-primary">{track.play_count || track.plays || 0}</span>
+                    <span className="badge bg-primary">{track.play_count || 0}</span>
                   </div>
                 ))
               ) : (
                 <div className="text-center py-3 text-muted">
                   <i className="bi bi-music-note-beamed display-4"></i>
-                  <p>No top tracks data available</p>
+                  <p>No track data available</p>
                 </div>
               )}
             </Card.Body>
